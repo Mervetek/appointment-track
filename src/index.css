@@ -1,0 +1,94 @@
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+#root {
+  min-height: 100vh;
+}
+
+/* FullCalendar özelleştirmeleri */
+.fc {
+  font-family: 'Inter', 'Roboto', 'Helvetica', 'Arial', sans-serif !important;
+}
+
+.fc .fc-toolbar-title {
+  font-size: 1.2rem !important;
+  font-weight: 600 !important;
+}
+
+.fc .fc-button {
+  border-radius: 8px !important;
+  font-weight: 500 !important;
+  text-transform: none !important;
+  font-size: 0.85rem !important;
+}
+
+.fc .fc-button-primary {
+  background-color: #5C6BC0 !important;
+  border-color: #5C6BC0 !important;
+}
+
+.fc .fc-button-primary:hover {
+  background-color: #3949AB !important;
+  border-color: #3949AB !important;
+}
+
+.fc .fc-button-primary:not(:disabled).fc-button-active {
+  background-color: #3949AB !important;
+  border-color: #3949AB !important;
+}
+
+.fc .fc-event {
+  border-radius: 6px !important;
+  padding: 2px 6px !important;
+  font-size: 0.8rem !important;
+  cursor: pointer !important;
+}
+
+.fc .fc-daygrid-day-number,
+.fc .fc-col-header-cell-cushion {
+  text-decoration: none !important;
+  color: inherit !important;
+}
+
+.fc .fc-timegrid-slot {
+  height: 3em !important;
+}
+
+.fc-theme-standard td,
+.fc-theme-standard th {
+  border-color: #e0e0e0 !important;
+}
+
+.fc .fc-now-indicator-line {
+  border-color: #e53935 !important;
+}
+
+/* Scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #bbb;
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #999;
+}
