@@ -1,5 +1,5 @@
 import React from 'react';
-import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import { HashRouter, Routes, Route } from 'react-router-dom';
 import { ThemeProvider, CssBaseline } from '@mui/material';
 import theme from './theme';
 import { AppProvider } from './context/AppContext';
@@ -16,7 +16,7 @@ function App() {
     <ThemeProvider theme={theme}>
       <CssBaseline />
       <AppProvider>
-        <BrowserRouter>
+        <HashRouter>
           <Routes>
             <Route path="/" element={<Layout />}>
               <Route index element={<Dashboard />} />
@@ -27,7 +27,7 @@ function App() {
               <Route path="reports" element={<Reports />} />
             </Route>
           </Routes>
-        </BrowserRouter>
+        </HashRouter>
       </AppProvider>
     </ThemeProvider>
   );
