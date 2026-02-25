@@ -383,7 +383,7 @@ const ClientDetail = () => {
                                                     secondary={
                                                         <Box sx={{ mt: 0.5 }}>
                                                             <Typography variant="body2" color="text.secondary">
-                                                                {session.sessionType === 'online' ? '💻' : '🏢'}{' '}
+                                                                {session.sessionType === 'hiwell' ? '🟣' : session.sessionType === 'online' ? '💻' : '🏢'}{' '}
                                                                 {t(`calendar.sessionType.${session.sessionType || 'face_to_face'}`)}
                                                                 {' • '}{session.duration} dk • {formatCurrency(session.fee)}
                                                             </Typography>
@@ -526,6 +526,7 @@ const ClientDetail = () => {
                                 >
                                     <MenuItem value="face_to_face">🏢 {t('calendar.sessionType.face_to_face')}</MenuItem>
                                     <MenuItem value="online">💻 {t('calendar.sessionType.online')}</MenuItem>
+                                    <MenuItem value="hiwell">🟣 {t('calendar.sessionType.hiwell')}</MenuItem>
                                 </Select>
                             </FormControl>
                         </Grid>

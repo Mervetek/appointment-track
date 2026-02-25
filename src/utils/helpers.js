@@ -82,11 +82,13 @@ export const PAYMENT_STATUS_COLORS = {
 export const SESSION_TYPE = {
     FACE_TO_FACE: 'face_to_face',
     ONLINE: 'online',
+    HIWELL: 'hiwell',
 };
 
 export const SESSION_TYPE_COLORS = {
     [SESSION_TYPE.FACE_TO_FACE]: '#1976d2',  // mavi
-    [SESSION_TYPE.ONLINE]: '#FF9800',         // turuncu
+    [SESSION_TYPE.ONLINE]: '#4CAF50',         // yeşil
+    [SESSION_TYPE.HIWELL]: '#9C27B0',         // mor
 };
 
 export const DEFAULT_SESSION_FEE = 2000;

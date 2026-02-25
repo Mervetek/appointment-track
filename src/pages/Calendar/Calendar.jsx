@@ -21,7 +21,7 @@ import {
     useMediaQuery,
     useTheme,
 } from '@mui/material';
-import { Add as AddIcon, Laptop as LaptopIcon, Person as PersonIcon } from '@mui/icons-material';
+import { Add as AddIcon, Laptop as LaptopIcon, Person as PersonIcon, Hub as HubIcon } from '@mui/icons-material';
 import FullCalendar from '@fullcalendar/react';
 import dayGridPlugin from '@fullcalendar/daygrid';
 import timeGridPlugin from '@fullcalendar/timegrid';
@@ -34,6 +34,7 @@ import {
     formatDateTime,
     formatCurrency,
     SESSION_TYPE_COLORS,
+    SESSION_TYPE,
 } from '../../utils/helpers';
 
 const Calendar = () => {
@@ -64,12 +65,12 @@ const Calendar = () => {
         () =>
             sessions.map((s) => {
                 const client = getClientById(s.clientId);
-                const isOnline = s.sessionType === 'online';
-                const eventColor = isOnline ? '#FF9800' : '#1976d2'; // turuncu: online, mavi: yüz yüze
+                const eventColor = SESSION_TYPE_COLORS[s.sessionType] || SESSION_TYPE_COLORS[SESSION_TYPE.FACE_TO_FACE];
+                const typeEmoji = s.sessionType === 'hiwell' ? '🟣' : s.sessionType === 'online' ? '💻' : '🏢';
                 const clientName = client ? `${client.firstName} ${client.lastName}` : t('calendar.unknown');
                 return {
                     id: s.id,
-                    title: `${isOnline ? '💻' : '🏢'} ${clientName}`,
+                    title: `${typeEmoji} ${clientName}`,
                     start: s.date,
                     end: new Date(new Date(s.date).getTime() + s.duration * 60000).toISOString(),
                     backgroundColor: eventColor,
@@ -150,9 +151,11 @@ const Calendar = () => {
                 <Chip icon={<PersonIcon />} label={t('calendar.sessionType.face_to_face')} size="small"
                     sx={{ fontWeight: 500, bgcolor: '#1976d215', color: '#1976d2', border: '1px solid #1976d2', '& .MuiChip-icon': { fontSize: 16, color: '#1976d2' } }} />
                 <Chip icon={<LaptopIcon />} label={t('calendar.sessionType.online')} size="small"
-                    sx={{ fontWeight: 500, bgcolor: '#FF980015', color: '#FF9800', border: '1px solid #FF9800', '& .MuiChip-icon': { fontSize: 16, color: '#FF9800' } }} />
+                    sx={{ fontWeight: 500, bgcolor: '#4CAF5015', color: '#4CAF50', border: '1px solid #4CAF50', '& .MuiChip-icon': { fontSize: 16, color: '#4CAF50' } }} />
+                <Chip icon={<HubIcon />} label={t('calendar.sessionType.hiwell')} size="small"
+                    sx={{ fontWeight: 500, bgcolor: '#9C27B015', color: '#9C27B0', border: '1px solid #9C27B0', '& .MuiChip-icon': { fontSize: 16, color: '#9C27B0' } }} />
                 <Typography variant="caption" color="text.secondary" sx={{ ml: 1 }}>
-                    🏢 = {t('calendar.sessionType.face_to_face')} &nbsp; 💻 = {t('calendar.sessionType.online')}
+                    🏢 = {t('calendar.sessionType.face_to_face')} &nbsp; 💻 = {t('calendar.sessionType.online')} &nbsp; 🟣 = {t('calendar.sessionType.hiwell')}
                 </Typography>
             </Box>
 
@@ -230,16 +233,24 @@ const Calendar = () => {
                                 <Grid size={{ xs: 6 }}>
                                     <Typography variant="caption" color="text.secondary">{t('calendar.sessionType')}</Typography>
                                     <Box>
-                                        <Chip
-                                            icon={selectedEvent.session.sessionType === 'online' ? <LaptopIcon /> : <PersonIcon />}
-                                            label={t(`calendar.sessionType.${selectedEvent.session.sessionType || 'face_to_face'}`)}
-                                            size="small"
-                                            sx={{
-                                                bgcolor: selectedEvent.session.sessionType === 'online' ? '#FF980015' : '#1976d215',
-                                                color: selectedEvent.session.sessionType === 'online' ? '#FF9800' : '#1976d2',
-                                                fontWeight: 600,
-                                            }}
-                                        />
+                                        {(() => {
+                                            const st = selectedEvent.session.sessionType || 'face_to_face';
+                                            const stColor = SESSION_TYPE_COLORS[st] || SESSION_TYPE_COLORS.face_to_face;
+                                            const stIcon = st === 'hiwell' ? <HubIcon /> : st === 'online' ? <LaptopIcon /> : <PersonIcon />;
+                                            return (
+                                                <Chip
+                                                    icon={stIcon}
+                                                    label={t(`calendar.sessionType.${st}`)}
+                                                    size="small"
+                                                    sx={{
+                                                        bgcolor: `${stColor}15`,
+                                                        color: stColor,
+                                                        fontWeight: 600,
+                                                        '& .MuiChip-icon': { color: stColor },
+                                                    }}
+                                                />
+                                            );
+                                        })()}
                                     </Box>
                                 </Grid>
                                 <Grid size={{ xs: 6 }}>
@@ -359,6 +370,7 @@ const Calendar = () => {
                                 >
                                     <MenuItem value="face_to_face">🏢 {t('calendar.sessionType.face_to_face')}</MenuItem>
                                     <MenuItem value="online">💻 {t('calendar.sessionType.online')}</MenuItem>
+                                    <MenuItem value="hiwell">🟣 {t('calendar.sessionType.hiwell')}</MenuItem>
                                 </Select>
                             </FormControl>
                         </Grid>
