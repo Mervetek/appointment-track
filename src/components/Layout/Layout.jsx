@@ -77,7 +77,9 @@ const Layout = () => {
         unreadCount,
         markAllRead,
         dismissAlert,
-    } = useNotifications(sessions, getClientById, t);
+        sendTestNotification,
+        clearSWConfig,
+    } = useNotifications(sessions, getClientById, t, language);
 
     const [notifAnchor, setNotifAnchor] = useState(null);
     const [permissionDialogOpen, setPermissionDialogOpen] = useState(false);
@@ -131,6 +133,7 @@ const Layout = () => {
     };
 
     const handleSignOut = async () => {
+        clearSWConfig(); // SW arka plan bildirimlerini durdur
         await signOut();
         navigate('/login');
     };
@@ -400,11 +403,26 @@ const Layout = () => {
                     <Typography variant="subtitle1" fontWeight={700}>
                         🔔 {t('notification.upcoming')}
                     </Typography>
-                    {permission !== 'granted' && (
-                        <Button size="small" variant="outlined" onClick={() => { handleNotifClose(); setPermissionDialogOpen(true); }}>
-                            {t('notification.enable')}
-                        </Button>
-                    )}
+                    <Box sx={{ display: 'flex', gap: 0.5 }}>
+                        {permission === 'granted' && (
+                            <Button
+                                size="small"
+                                variant="text"
+                                onClick={() => {
+                                    sendTestNotification();
+                                    dispatch({ type: 'SHOW_SNACKBAR', payload: { message: '🔔 Test bildirimi gönderildi!', severity: 'info' } });
+                                }}
+                                sx={{ fontSize: '0.7rem', minWidth: 'auto', px: 1 }}
+                            >
+                                🧪 Test
+                            </Button>
+                        )}
+                        {permission !== 'granted' && (
+                            <Button size="small" variant="outlined" onClick={() => { handleNotifClose(); setPermissionDialogOpen(true); }}>
+                                {t('notification.enable')}
+                            </Button>
+                        )}
+                    </Box>
                 </Box>
                 {upcomingAlerts.length === 0 ? (
                     <Box sx={{ p: 3, textAlign: 'center' }}>
