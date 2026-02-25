@@ -21,7 +21,7 @@ if ('serviceWorker' in navigator) {
           }
         });
         // Her sayfa yüklemesinde güncelleme kontrolü
-        reg.update().catch(() => {});
+        reg.update().catch(() => { });
       })
       .catch((err) => {
         console.log('SW registration failed:', err);
