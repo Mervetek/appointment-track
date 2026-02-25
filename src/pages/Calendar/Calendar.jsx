@@ -33,7 +33,6 @@ import {
     DEFAULT_SESSION_FEE,
     formatDateTime,
     formatCurrency,
-    getClientColor,
     SESSION_TYPE_COLORS,
 } from '../../utils/helpers';
 
@@ -65,20 +64,16 @@ const Calendar = () => {
         () =>
             sessions.map((s) => {
                 const client = getClientById(s.clientId);
-                const clientColor = getClientColor(s.clientId);
                 const isOnline = s.sessionType === 'online';
-                const typeLabel = isOnline
-                    ? t('calendar.sessionType.short.online')
-                    : t('calendar.sessionType.short.face_to_face');
+                const eventColor = isOnline ? '#FF9800' : '#1976d2'; // turuncu: online, mavi: yüz yüze
                 const clientName = client ? `${client.firstName} ${client.lastName}` : t('calendar.unknown');
                 return {
                     id: s.id,
                     title: `${isOnline ? '💻' : '🏢'} ${clientName}`,
                     start: s.date,
                     end: new Date(new Date(s.date).getTime() + s.duration * 60000).toISOString(),
-                    backgroundColor: clientColor,
-                    borderColor: clientColor,
-                    borderWidth: 2,
+                    backgroundColor: eventColor,
+                    borderColor: eventColor,
                     textColor: '#fff',
                     extendedProps: { session: s, client },
                 };
@@ -152,10 +147,10 @@ const Calendar = () => {
 
             {/* Lejant */}
             <Box sx={{ display: 'flex', gap: 2, mb: 2, flexWrap: 'wrap', alignItems: 'center' }}>
-                <Chip icon={<PersonIcon />} label={t('calendar.sessionType.face_to_face')} size="small" variant="outlined"
-                    sx={{ fontWeight: 500, '& .MuiChip-icon': { fontSize: 16 } }} />
-                <Chip icon={<LaptopIcon />} label={t('calendar.sessionType.online')} size="small" variant="outlined"
-                    sx={{ fontWeight: 500, '& .MuiChip-icon': { fontSize: 16 } }} />
+                <Chip icon={<PersonIcon />} label={t('calendar.sessionType.face_to_face')} size="small"
+                    sx={{ fontWeight: 500, bgcolor: '#1976d215', color: '#1976d2', border: '1px solid #1976d2', '& .MuiChip-icon': { fontSize: 16, color: '#1976d2' } }} />
+                <Chip icon={<LaptopIcon />} label={t('calendar.sessionType.online')} size="small"
+                    sx={{ fontWeight: 500, bgcolor: '#FF980015', color: '#FF9800', border: '1px solid #FF9800', '& .MuiChip-icon': { fontSize: 16, color: '#FF9800' } }} />
                 <Typography variant="caption" color="text.secondary" sx={{ ml: 1 }}>
                     🏢 = {t('calendar.sessionType.face_to_face')} &nbsp; 💻 = {t('calendar.sessionType.online')}
                 </Typography>
@@ -240,8 +235,8 @@ const Calendar = () => {
                                             label={t(`calendar.sessionType.${selectedEvent.session.sessionType || 'face_to_face'}`)}
                                             size="small"
                                             sx={{
-                                                bgcolor: selectedEvent.session.sessionType === 'online' ? '#00ACC115' : '#5C6BC015',
-                                                color: selectedEvent.session.sessionType === 'online' ? '#00ACC1' : '#5C6BC0',
+                                                bgcolor: selectedEvent.session.sessionType === 'online' ? '#FF980015' : '#1976d215',
+                                                color: selectedEvent.session.sessionType === 'online' ? '#FF9800' : '#1976d2',
                                                 fontWeight: 600,
                                             }}
                                         />
