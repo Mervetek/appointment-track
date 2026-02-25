@@ -180,8 +180,8 @@ const Calendar = () => {
                         eventClick={handleEventClick}
                         dateClick={handleDateClick}
                         height="auto"
-                        slotMinTime="07:00:00"
-                        slotMaxTime="23:00:00"
+                        slotMinTime="08:00:00"
+                        slotMaxTime="23:59:00"
                         allDaySlot={false}
                         slotDuration="00:30:00"
                         nowIndicator={true}
