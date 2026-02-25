@@ -20,77 +20,81 @@ export const supabase = isSupabaseConfigured()
 
 // ===================== CLIENTS =====================
 
-export const fetchClients = async () => {
+export const fetchClients = async (userId) => {
     const { data, error } = await supabase
         .from('clients')
         .select('*')
+        .eq('user_id', userId)
         .order('created_at', { ascending: false });
     if (error) throw error;
     return data.map(mapClientFromDb);
 };
 
-export const insertClient = async (client) => {
+export const insertClient = async (client, userId) => {
     const { data, error } = await supabase
         .from('clients')
-        .insert(mapClientToDb(client))
+        .insert({ ...mapClientToDb(client), user_id: userId })
         .select()
         .single();
     if (error) throw error;
     return mapClientFromDb(data);
 };
 
-export const updateClient = async (client) => {
+export const updateClient = async (client, userId) => {
     const { data, error } = await supabase
         .from('clients')
         .update(mapClientToDb(client))
         .eq('id', client.id)
+        .eq('user_id', userId)
         .select()
         .single();
     if (error) throw error;
     return mapClientFromDb(data);
 };
 
-export const deleteClient = async (id) => {
+export const deleteClient = async (id, userId) => {
     // Önce bu danışanın seanslarını sil
-    await supabase.from('sessions').delete().eq('client_id', id);
-    const { error } = await supabase.from('clients').delete().eq('id', id);
+    await supabase.from('sessions').delete().eq('client_id', id).eq('user_id', userId);
+    const { error } = await supabase.from('clients').delete().eq('id', id).eq('user_id', userId);
     if (error) throw error;
 };
 
 // ===================== SESSIONS =====================
 
-export const fetchSessions = async () => {
+export const fetchSessions = async (userId) => {
     const { data, error } = await supabase
         .from('sessions')
         .select('*')
+        .eq('user_id', userId)
         .order('date', { ascending: false });
     if (error) throw error;
     return data.map(mapSessionFromDb);
 };
 
-export const insertSession = async (session) => {
+export const insertSession = async (session, userId) => {
     const { data, error } = await supabase
         .from('sessions')
-        .insert(mapSessionToDb(session))
+        .insert({ ...mapSessionToDb(session), user_id: userId })
         .select()
         .single();
     if (error) throw error;
     return mapSessionFromDb(data);
 };
 
-export const updateSession = async (session) => {
+export const updateSession = async (session, userId) => {
     const { data, error } = await supabase
         .from('sessions')
         .update(mapSessionToDb(session))
         .eq('id', session.id)
+        .eq('user_id', userId)
         .select()
         .single();
     if (error) throw error;
     return mapSessionFromDb(data);
 };
 
-export const deleteSession = async (id) => {
-    const { error } = await supabase.from('sessions').delete().eq('id', id);
+export const deleteSession = async (id, userId) => {
+    const { error } = await supabase.from('sessions').delete().eq('id', id).eq('user_id', userId);
     if (error) throw error;
 };
 
@@ -127,16 +131,17 @@ export const runAutoMigration = async () => {
 
 // ===================== SEED (İlk veri yükleme) =====================
 
-export const checkAndSeedData = async (sampleClients, generateSampleSessions) => {
-    // Veritabanında veri var mı kontrol et
+export const checkAndSeedData = async (sampleClients, generateSampleSessions, userId) => {
+    // Bu kullanıcının veritabanında verisi var mı kontrol et
     const { count } = await supabase
         .from('clients')
-        .select('*', { count: 'exact', head: true });
+        .select('*', { count: 'exact', head: true })
+        .eq('user_id', userId);
 
     if (count > 0) return null; // Zaten veri var, seed yapma
 
-    // Örnek danışanları ekle
-    const clientsToInsert = sampleClients.map(mapClientToDb);
+    // Örnek danışanları ekle (user_id ile)
+    const clientsToInsert = sampleClients.map((c) => ({ ...mapClientToDb(c), user_id: userId }));
     const { data: insertedClients, error: clientError } = await supabase
         .from('clients')
         .insert(clientsToInsert)
@@ -146,9 +151,9 @@ export const checkAndSeedData = async (sampleClients, generateSampleSessions) =>
     // Veritabanından dönen danışanları app formatına çevir
     const mappedClients = insertedClients.map(mapClientFromDb);
 
-    // Örnek seansları oluştur
+    // Örnek seansları oluştur (user_id ile)
     const sampleSessions = generateSampleSessions(mappedClients);
-    const sessionsToInsert = sampleSessions.map(mapSessionToDb);
+    const sessionsToInsert = sampleSessions.map((s) => ({ ...mapSessionToDb(s), user_id: userId }));
     const { data: insertedSessions, error: sessionError } = await supabase
         .from('sessions')
         .insert(sessionsToInsert)

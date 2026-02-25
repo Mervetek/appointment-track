@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useReducer, useEffect, useCallback, useRef } from 'react';
-import { sampleClients, generateSampleSessions } from '../data/sampleData';
 import { generateId } from '../utils/helpers';
+import { useAuth } from './AuthContext';
 import {
   isSupabaseConfigured,
   fetchClients,
@@ -11,7 +11,6 @@ import {
   insertSession,
   updateSession as updateSessionDb,
   deleteSession as deleteSessionDb,
-  checkAndSeedData,
   runAutoMigration,
 } from '../lib/supabase';
 
@@ -110,12 +109,15 @@ const appReducer = (state, action) => {
 
 export const AppProvider = ({ children }) => {
   const [state, dispatch] = useReducer(appReducer, null, getInitialState);
-  const initialized = useRef(false);
+  const loadedForUser = useRef(null);
+  const { user } = useAuth();
+  const userId = user?.id;
 
   // ---- Uygulama başlangıcında verileri yükle ----
   useEffect(() => {
-    if (initialized.current) return;
-    initialized.current = true;
+    if (!userId) return; // Kullanıcı yoksa yükleme
+    if (loadedForUser.current === userId) return; // Bu kullanıcı için zaten yüklendi
+    loadedForUser.current = userId;
 
     const loadData = async () => {
       if (useSupabase) {
@@ -124,11 +126,11 @@ export const AppProvider = ({ children }) => {
           // Tabloları otomatik oluştur (yoksa)
           await runAutoMigration();
 
-          // Veritabanında veri yoksa örnek verileri yükle
-          await checkAndSeedData(sampleClients, generateSampleSessions);
-
-          // Veritabanından oku
-          const [clients, sessions] = await Promise.all([fetchClients(), fetchSessions()]);
+          // Veritabanından bu kullanıcının verilerini oku
+          const [clients, sessions] = await Promise.all([
+            fetchClients(userId),
+            fetchSessions(userId),
+          ]);
           dispatch({ type: 'SET_DATA', payload: { clients, sessions } });
         } catch (err) {
           console.error('Supabase veri yükleme hatası:', err);
@@ -145,13 +147,13 @@ export const AppProvider = ({ children }) => {
     const loadLocalData = () => {
       const storedClients = loadFromStorage('psikolog_clients', null);
       const storedSessions = loadFromStorage('psikolog_sessions', null);
-      const clients = storedClients || sampleClients;
-      const sessions = storedSessions || generateSampleSessions(clients);
+      const clients = storedClients || [];
+      const sessions = storedSessions || [];
       dispatch({ type: 'SET_DATA', payload: { clients, sessions } });
     };
 
     loadData();
-  }, []);
+  }, [userId]);
 
   // ---- localStorage fallback: değişiklikleri kaydet ----
   useEffect(() => {
@@ -174,7 +176,7 @@ export const AppProvider = ({ children }) => {
         const newClient = await insertClient({
           ...clientData,
           isActive: true,
-        });
+        }, userId);
         dispatch({ type: 'ADD_CLIENT', payload: newClient });
         return newClient;
       } catch (err) {
@@ -191,12 +193,12 @@ export const AppProvider = ({ children }) => {
       dispatch({ type: 'ADD_CLIENT', payload: newClient });
       return newClient;
     }
-  }, []);
+  }, [userId]);
 
   const editClient = useCallback(async (clientData) => {
     if (useSupabase) {
       try {
-        const updated = await updateClientDb(clientData);
+        const updated = await updateClientDb(clientData, userId);
         dispatch({ type: 'UPDATE_CLIENT', payload: updated });
         return updated;
       } catch (err) {
@@ -207,12 +209,12 @@ export const AppProvider = ({ children }) => {
       dispatch({ type: 'UPDATE_CLIENT', payload: clientData });
       return clientData;
     }
-  }, []);
+  }, [userId]);
 
   const removeClient = useCallback(async (id) => {
     if (useSupabase) {
       try {
-        await deleteClientDb(id);
+        await deleteClientDb(id, userId);
         dispatch({ type: 'DELETE_CLIENT', payload: id });
       } catch (err) {
         console.error('Danışan silme hatası:', err);
@@ -221,12 +223,12 @@ export const AppProvider = ({ children }) => {
     } else {
       dispatch({ type: 'DELETE_CLIENT', payload: id });
     }
-  }, []);
+  }, [userId]);
 
   const addSession = useCallback(async (sessionData) => {
     if (useSupabase) {
       try {
-        const newSession = await insertSession(sessionData);
+        const newSession = await insertSession(sessionData, userId);
         dispatch({ type: 'ADD_SESSION', payload: newSession });
         return newSession;
       } catch (err) {
@@ -238,12 +240,12 @@ export const AppProvider = ({ children }) => {
       dispatch({ type: 'ADD_SESSION', payload: newSession });
       return newSession;
     }
-  }, []);
+  }, [userId]);
 
   const editSession = useCallback(async (sessionData) => {
     if (useSupabase) {
       try {
-        const updated = await updateSessionDb(sessionData);
+        const updated = await updateSessionDb(sessionData, userId);
         dispatch({ type: 'UPDATE_SESSION', payload: updated });
         return updated;
       } catch (err) {
@@ -254,12 +256,12 @@ export const AppProvider = ({ children }) => {
       dispatch({ type: 'UPDATE_SESSION', payload: sessionData });
       return sessionData;
     }
-  }, []);
+  }, [userId]);
 
   const removeSession = useCallback(async (id) => {
     if (useSupabase) {
       try {
-        await deleteSessionDb(id);
+        await deleteSessionDb(id, userId);
         dispatch({ type: 'DELETE_SESSION', payload: id });
       } catch (err) {
         console.error('Seans silme hatası:', err);
@@ -268,7 +270,7 @@ export const AppProvider = ({ children }) => {
     } else {
       dispatch({ type: 'DELETE_SESSION', payload: id });
     }
-  }, []);
+  }, [userId]);
 
   // ======================== HELPER FONKSIYONLAR ========================
 
