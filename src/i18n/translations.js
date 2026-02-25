@@ -59,6 +59,17 @@ const translations = {
         'dashboard.loading': 'Veriler yükleniyor...',
         'dashboard.min': 'dk',
 
+        // Dashboard Empty State
+        'dashboard.empty.title': 'Başlamaya Hazır Mısınız? 🚀',
+        'dashboard.empty.subtitle': 'Henüz danışan veya seans kaydınız yok. İlk danışanınızı ekleyerek başlayın!',
+        'dashboard.empty.addClient': 'İlk Danışanınızı Ekleyin',
+        'dashboard.empty.step1.title': 'Danışan Ekleyin',
+        'dashboard.empty.step1.desc': 'Ad, iletişim ve tanı bilgilerini kaydedin',
+        'dashboard.empty.step2.title': 'Seans Planlayın',
+        'dashboard.empty.step2.desc': 'Takvimden tarih ve saat seçin',
+        'dashboard.empty.step3.title': 'Takip Edin',
+        'dashboard.empty.step3.desc': 'Ödemeler, notlar ve ilerlemeyi izleyin',
+
         // Clients
         'clients.title': 'Danışanlar',
         'clients.count': '{count} danışan kayıtlı',
@@ -294,6 +305,17 @@ const translations = {
         'dashboard.unknown': 'Unknown',
         'dashboard.loading': 'Loading data...',
         'dashboard.min': 'min',
+
+        // Dashboard Empty State
+        'dashboard.empty.title': 'Ready to Get Started? 🚀',
+        'dashboard.empty.subtitle': 'You have no clients or sessions yet. Start by adding your first client!',
+        'dashboard.empty.addClient': 'Add Your First Client',
+        'dashboard.empty.step1.title': 'Add a Client',
+        'dashboard.empty.step1.desc': 'Save name, contact and diagnosis info',
+        'dashboard.empty.step2.title': 'Schedule a Session',
+        'dashboard.empty.step2.desc': 'Pick a date and time from the calendar',
+        'dashboard.empty.step3.title': 'Track Progress',
+        'dashboard.empty.step3.desc': 'Monitor payments, notes and progress',
 
         // Clients
         'clients.title': 'Clients',

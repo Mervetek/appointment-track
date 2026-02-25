@@ -27,6 +27,9 @@ import {
     ArrowForward as ArrowForwardIcon,
     EventAvailable as EventAvailableIcon,
     Warning as WarningIcon,
+    PersonAdd as PersonAddIcon,
+    EventNote as EventNoteIcon,
+    Assessment as AssessmentIcon,
 } from '@mui/icons-material';
 import { useApp } from '../../context/AppContext';
 import { useAuth } from '../../context/AuthContext';
@@ -72,6 +75,125 @@ const StatCard = ({ icon, title, value, subtitle, color, onClick }) => (
     </Card>
 );
 
+const StepCard = ({ icon, title, description, step, color }) => (
+    <Card sx={{ textAlign: 'center', height: '100%', position: 'relative', overflow: 'visible' }}>
+        <Box
+            sx={{
+                position: 'absolute',
+                top: -16,
+                left: '50%',
+                transform: 'translateX(-50%)',
+                width: 32,
+                height: 32,
+                borderRadius: '50%',
+                bgcolor: color,
+                color: '#fff',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                fontWeight: 700,
+                fontSize: '0.9rem',
+                boxShadow: `0 4px 12px ${color}40`,
+            }}
+        >
+            {step}
+        </Box>
+        <CardContent sx={{ pt: 4, px: 2, pb: 2 }}>
+            <Avatar sx={{ bgcolor: `${color}12`, color: color, width: 52, height: 52, mx: 'auto', mb: 1.5 }}>
+                {icon}
+            </Avatar>
+            <Typography variant="subtitle1" fontWeight={600} gutterBottom>
+                {title}
+            </Typography>
+            <Typography variant="body2" color="text.secondary">
+                {description}
+            </Typography>
+        </CardContent>
+    </Card>
+);
+
+const EmptyDashboard = ({ t, userName, navigate }) => (
+    <Box>
+        {/* Header */}
+        <Box sx={{ mb: { xs: 3, md: 4 }, textAlign: 'center' }}>
+            <Typography variant="h4" gutterBottom sx={{ fontSize: { xs: '1.5rem', sm: '1.75rem', md: '2.125rem' } }}>
+                {t('dashboard.welcome', { name: userName })}
+            </Typography>
+        </Box>
+
+        {/* Hero Card */}
+        <Paper
+            elevation={0}
+            sx={{
+                textAlign: 'center',
+                py: { xs: 4, md: 6 },
+                px: { xs: 2, md: 4 },
+                mb: { xs: 3, md: 4 },
+                borderRadius: 4,
+                background: 'linear-gradient(135deg, #667eea15 0%, #764ba215 100%)',
+                border: '1px solid',
+                borderColor: 'divider',
+            }}
+        >
+            <PeopleIcon sx={{ fontSize: { xs: 56, md: 72 }, color: 'primary.main', mb: 2, opacity: 0.8 }} />
+            <Typography variant="h5" fontWeight={600} gutterBottom sx={{ fontSize: { xs: '1.2rem', md: '1.5rem' } }}>
+                {t('dashboard.empty.title')}
+            </Typography>
+            <Typography variant="body1" color="text.secondary" sx={{ mb: 3, maxWidth: 480, mx: 'auto' }}>
+                {t('dashboard.empty.subtitle')}
+            </Typography>
+            <Button
+                variant="contained"
+                size="large"
+                startIcon={<PersonAddIcon />}
+                onClick={() => navigate('/clients')}
+                sx={{
+                    borderRadius: 3,
+                    px: 4,
+                    py: 1.5,
+                    textTransform: 'none',
+                    fontWeight: 600,
+                    fontSize: '1rem',
+                    boxShadow: '0 4px 16px rgba(102, 126, 234, 0.3)',
+                }}
+            >
+                {t('dashboard.empty.addClient')}
+            </Button>
+        </Paper>
+
+        {/* Steps */}
+        <Grid container spacing={{ xs: 2, md: 3 }}>
+            <Grid size={{ xs: 12, sm: 4 }}>
+                <StepCard
+                    step={1}
+                    icon={<PersonAddIcon />}
+                    title={t('dashboard.empty.step1.title')}
+                    description={t('dashboard.empty.step1.desc')}
+                    color="#5C6BC0"
+                />
+            </Grid>
+            <Grid size={{ xs: 12, sm: 4 }}>
+                <StepCard
+                    step={2}
+                    icon={<EventNoteIcon />}
+                    title={t('dashboard.empty.step2.title')}
+                    description={t('dashboard.empty.step2.desc')}
+                    color="#26A69A"
+                />
+            </Grid>
+            <Grid size={{ xs: 12, sm: 4 }}>
+                <StepCard
+                    step={3}
+                    icon={<AssessmentIcon />}
+                    title={t('dashboard.empty.step3.title')}
+                    description={t('dashboard.empty.step3.desc')}
+                    color="#43a047"
+                />
+            </Grid>
+        </Grid>
+    </Box>
+);
+
 const Dashboard = () => {
     const navigate = useNavigate();
     const {
@@ -94,6 +216,11 @@ const Dashboard = () => {
                 <Typography variant="h6" color="text.secondary">{t('dashboard.loading')}</Typography>
             </Box>
         );
+    }
+
+    // Empty State — henüz danışan yoksa onboarding göster
+    if (clients.length === 0 && sessions.length === 0) {
+        return <EmptyDashboard t={t} userName={getUserName()} navigate={navigate} />;
     }
 
     const todaySessions = getTodaySessions();
