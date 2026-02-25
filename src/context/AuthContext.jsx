@@ -1,13 +1,17 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
+import { fetchUserByUsername, insertUser } from '../lib/supabase';
 
 const AuthContext = createContext();
 
-// Kullanıcı bilgileri
-const VALID_USER = {
-    username: 'okonag',
-    password: 'sincap85',
-    fullName: 'Özlem Konağ',
-    title: 'Psikolog',
+// Basit hash fonksiyonu (production'da bcrypt kullanılmalı)
+const simpleHash = (str) => {
+    let hash = 0;
+    for (let i = 0; i < str.length; i++) {
+        const char = str.charCodeAt(i);
+        hash = ((hash << 5) - hash) + char;
+        hash |= 0;
+    }
+    return 'h_' + Math.abs(hash).toString(36);
 };
 
 export const AuthProvider = ({ children }) => {
@@ -15,7 +19,7 @@ export const AuthProvider = ({ children }) => {
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
-        // Mevcut oturumu localStorage'dan kontrol et
+        // Mevcut oturumu localStorage'dan kontrol et (sadece session bilgisi)
         const stored = localStorage.getItem('psikotakip_auth');
         if (stored) {
             try {
@@ -33,22 +37,73 @@ export const AuthProvider = ({ children }) => {
         setLoading(false);
     }, []);
 
-    const signIn = async (username, password) => {
-        if (username === VALID_USER.username && password === VALID_USER.password) {
+    // Oturum bilgisini localStorage'a kaydet
+    const saveSession = (userData) => {
+        setUser(userData);
+        localStorage.setItem('psikotakip_auth', JSON.stringify({
+            user: userData,
+            expiry: Date.now() + 7 * 24 * 60 * 60 * 1000, // 7 gün
+        }));
+    };
+
+    // Kullanıcı kaydı (Supabase)
+    const signUp = async (username, password, fullName, title = '') => {
+        const trimmedUsername = username.toLowerCase().trim();
+        const passwordHash = simpleHash(password);
+
+        try {
+            // Kullanıcı adı müsait mi kontrol et
+            const existing = await fetchUserByUsername(trimmedUsername);
+            if (existing) {
+                return { user: null, error: { message: 'username_exists' } };
+            }
+
+            const newUser = await insertUser({
+                username: trimmedUsername,
+                passwordHash,
+                fullName,
+                title,
+            });
+
             const userData = {
-                username: VALID_USER.username,
-                fullName: VALID_USER.fullName,
-                title: VALID_USER.title,
+                id: newUser.id,
+                username: newUser.username,
+                fullName: newUser.fullName,
+                title: newUser.title,
             };
-            setUser(userData);
-            // 7 gün oturum süresi
-            localStorage.setItem('psikotakip_auth', JSON.stringify({
-                user: userData,
-                expiry: Date.now() + 7 * 24 * 60 * 60 * 1000,
-            }));
+            saveSession(userData);
             return { user: userData, error: null };
+        } catch (err) {
+            // Unique constraint violation
+            if (err.code === '23505') {
+                return { user: null, error: { message: 'username_exists' } };
+            }
+            return { user: null, error: { message: err.message } };
         }
-        return { user: null, error: { message: 'Geçersiz kullanıcı adı veya şifre' } };
+    };
+
+    // Giriş (Supabase)
+    const signIn = async (username, password) => {
+        const trimmedUsername = username.toLowerCase().trim();
+        const passwordHash = simpleHash(password);
+
+        try {
+            const foundUser = await fetchUserByUsername(trimmedUsername);
+            if (!foundUser || foundUser.passwordHash !== passwordHash) {
+                return { user: null, error: { message: 'invalid_credentials' } };
+            }
+
+            const userData = {
+                id: foundUser.id,
+                username: foundUser.username,
+                fullName: foundUser.fullName,
+                title: foundUser.title,
+            };
+            saveSession(userData);
+            return { user: userData, error: null };
+        } catch (err) {
+            return { user: null, error: { message: err.message } };
+        }
     };
 
     const signOut = async () => {
@@ -66,6 +121,7 @@ export const AuthProvider = ({ children }) => {
                 user,
                 loading,
                 signIn,
+                signUp,
                 signOut,
                 getUserName,
                 isAuthenticated: !!user,

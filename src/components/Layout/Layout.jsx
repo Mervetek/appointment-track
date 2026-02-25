@@ -101,7 +101,7 @@ const Layout = () => {
                         PsikoTakip
                     </Typography>
                     <Typography variant="caption" color="text.secondary">
-                        Psk. Özlem Konağ
+                        {getUserName()}
                     </Typography>
                 </Box>
             </Box>

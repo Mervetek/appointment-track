@@ -1,18 +1,18 @@
 {
-  "name": "PsikoTakip",
-  "short_name": "PsikoTakip",
-  "description": "Psk. Özlem Konağ - Randevu Takip Sistemi",
-  "start_url": "/",
-  "display": "standalone",
-  "background_color": "#5C6BC0",
-  "theme_color": "#5C6BC0",
-  "orientation": "any",
-  "icons": [
-    {
-      "src": "/icons/icon.svg",
-      "sizes": "any",
-      "type": "image/svg+xml",
-      "purpose": "any maskable"
-    }
-  ]
+    "name": "PsikoTakip",
+    "short_name": "PsikoTakip",
+    "description": "Randevu Takip Sistemi",
+    "start_url": "/",
+    "display": "standalone",
+    "background_color": "#5C6BC0",
+    "theme_color": "#5C6BC0",
+    "orientation": "any",
+    "icons": [
+        {
+            "src": "/icons/icon.svg",
+            "sizes": "any",
+            "type": "image/svg+xml",
+            "purpose": "any maskable"
+        }
+    ]
 }

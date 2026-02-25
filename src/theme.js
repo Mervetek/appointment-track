@@ -17,13 +17,14 @@ const getTheme = (mode) =>
             ...(mode === 'light'
                 ? {
                     background: {
-                        default: '#F5F5F5',
-                        paper: '#FFFFFF',
+                        default: '#EEEDF5',
+                        paper: '#FAFAFC',
                     },
                     success: { main: '#43a047' },
                     warning: { main: '#fb8c00' },
                     error: { main: '#e53935' },
                     info: { main: '#1976d2' },
+                    divider: 'rgba(92, 107, 192, 0.12)',
                 }
                 : {
                     background: {
@@ -52,8 +53,11 @@ const getTheme = (mode) =>
                         borderRadius: 16,
                         boxShadow:
                             mode === 'light'
-                                ? '0 2px 12px rgba(0,0,0,0.08)'
+                                ? '0 2px 16px rgba(92, 107, 192, 0.10), 0 1px 4px rgba(0,0,0,0.04)'
                                 : '0 2px 12px rgba(0,0,0,0.3)',
+                        ...(mode === 'light' && {
+                            border: '1px solid rgba(92, 107, 192, 0.08)',
+                        }),
                     },
                 },
             },
@@ -77,14 +81,38 @@ const getTheme = (mode) =>
                 styleOverrides: {
                     head: {
                         fontWeight: 700,
-                        backgroundColor: mode === 'light' ? '#F5F5F5' : '#2A2A2A',
+                        backgroundColor: mode === 'light' ? '#E8E6F0' : '#2A2A2A',
                     },
                 },
             },
             MuiDrawer: {
                 styleOverrides: {
                     paper: {
-                        backgroundColor: mode === 'light' ? '#FFFFFF' : '#1E1E1E',
+                        backgroundColor: mode === 'light' ? '#F4F3FA' : '#1E1E1E',
+                        ...(mode === 'light' && {
+                            borderRight: '1px solid rgba(92, 107, 192, 0.12)',
+                        }),
+                    },
+                },
+            },
+            MuiAppBar: {
+                styleOverrides: {
+                    root: {
+                        ...(mode === 'light' && {
+                            backgroundColor: '#F8F7FC',
+                            backdropFilter: 'blur(8px)',
+                        }),
+                    },
+                },
+            },
+            MuiListItemButton: {
+                styleOverrides: {
+                    root: {
+                        ...(mode === 'light' && {
+                            '&:hover': {
+                                backgroundColor: 'rgba(92, 107, 192, 0.08)',
+                            },
+                        }),
                     },
                 },
             },

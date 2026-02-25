@@ -14,6 +14,7 @@ import {
     Divider,
     Fade,
     Tooltip,
+    Link,
 } from '@mui/material';
 import {
     Psychology as PsychologyIcon,
@@ -22,22 +23,43 @@ import {
     Visibility,
     VisibilityOff,
     Login as LoginIcon,
+    PersonAdd as PersonAddIcon,
     DarkMode as DarkModeIcon,
     LightMode as LightModeIcon,
+    Badge as BadgeIcon,
+    Work as WorkIcon,
 } from '@mui/icons-material';
 import { useAuth } from '../../context/AuthContext';
 import { useLanguage } from '../../context/LanguageContext';
 import { useThemeMode } from '../../context/ThemeContext';
 
 const Login = () => {
-    const { signIn } = useAuth();
+    const { signIn, signUp } = useAuth();
     const { t, language, toggleLanguage } = useLanguage();
     const { toggleTheme, isDark } = useThemeMode();
+    const [isRegister, setIsRegister] = useState(false);
     const [username, setUsername] = useState('');
     const [password, setPassword] = useState('');
+    const [confirmPassword, setConfirmPassword] = useState('');
+    const [fullName, setFullName] = useState('');
+    const [title, setTitle] = useState('');
     const [showPassword, setShowPassword] = useState(false);
     const [error, setError] = useState('');
     const [loading, setLoading] = useState(false);
+
+    const resetForm = () => {
+        setUsername('');
+        setPassword('');
+        setConfirmPassword('');
+        setFullName('');
+        setTitle('');
+        setError('');
+    };
+
+    const handleToggleMode = () => {
+        resetForm();
+        setIsRegister(!isRegister);
+    };
 
     const handleSubmit = async (e) => {
         e.preventDefault();
@@ -48,11 +70,46 @@ const Login = () => {
             return;
         }
 
+        if (isRegister) {
+            if (!fullName.trim()) {
+                setError(t('login.error.nameRequired'));
+                return;
+            }
+            if (password.length < 4) {
+                setError(t('login.error.passwordShort'));
+                return;
+            }
+            if (password !== confirmPassword) {
+                setError(t('login.error.passwordMismatch'));
+                return;
+            }
+        }
+
         setLoading(true);
         try {
-            const { error: authError } = await signIn(username.trim(), password);
-            if (authError) {
-                setError(authError.message);
+            if (isRegister) {
+                const { error: authError } = await signUp(
+                    username.trim(),
+                    password,
+                    fullName.trim(),
+                    title.trim()
+                );
+                if (authError) {
+                    if (authError.message === 'username_exists') {
+                        setError(t('login.error.usernameExists'));
+                    } else {
+                        setError(authError.message);
+                    }
+                }
+            } else {
+                const { error: authError } = await signIn(username.trim(), password);
+                if (authError) {
+                    if (authError.message === 'invalid_credentials') {
+                        setError(t('login.error.invalidCredentials'));
+                    } else {
+                        setError(authError.message);
+                    }
+                }
             }
         } catch (err) {
             setError(t('login.error.generic'));
@@ -156,7 +213,7 @@ const Login = () => {
                 >
                     <CardContent sx={{ p: { xs: 3, sm: 4 }, pt: { xs: 4, sm: 5 } }}>
                         {/* Logo ve başlık */}
-                        <Box sx={{ textAlign: 'center', mb: 4 }}>
+                        <Box sx={{ textAlign: 'center', mb: 3 }}>
                             <Avatar
                                 sx={{
                                     width: 72,
@@ -187,7 +244,7 @@ const Login = () => {
 
                             <Divider sx={{ my: 3 }}>
                                 <Typography variant="caption" color="text.secondary">
-                                    {t('login.divider')}
+                                    {isRegister ? t('login.registerDivider') : t('login.divider')}
                                 </Typography>
                             </Divider>
                         </Box>
@@ -201,6 +258,41 @@ const Login = () => {
 
                         {/* Form */}
                         <Box component="form" onSubmit={handleSubmit}>
+                            {isRegister && (
+                                <>
+                                    <TextField
+                                        fullWidth
+                                        label={t('login.fullName')}
+                                        value={fullName}
+                                        onChange={(e) => setFullName(e.target.value)}
+                                        sx={{ mb: 2 }}
+                                        InputProps={{
+                                            startAdornment: (
+                                                <InputAdornment position="start">
+                                                    <BadgeIcon color="action" />
+                                                </InputAdornment>
+                                            ),
+                                        }}
+                                        autoFocus
+                                    />
+                                    <TextField
+                                        fullWidth
+                                        label={t('login.titleField')}
+                                        value={title}
+                                        onChange={(e) => setTitle(e.target.value)}
+                                        sx={{ mb: 2 }}
+                                        placeholder={t('login.titlePlaceholder')}
+                                        InputProps={{
+                                            startAdornment: (
+                                                <InputAdornment position="start">
+                                                    <WorkIcon color="action" />
+                                                </InputAdornment>
+                                            ),
+                                        }}
+                                    />
+                                </>
+                            )}
+
                             <TextField
                                 fullWidth
                                 label={t('login.username')}
@@ -214,7 +306,7 @@ const Login = () => {
                                         </InputAdornment>
                                     ),
                                 }}
-                                autoFocus
+                                autoFocus={!isRegister}
                             />
 
                             <TextField
@@ -223,7 +315,7 @@ const Login = () => {
                                 type={showPassword ? 'text' : 'password'}
                                 value={password}
                                 onChange={(e) => setPassword(e.target.value)}
-                                sx={{ mb: 3 }}
+                                sx={{ mb: isRegister ? 2 : 3 }}
                                 InputProps={{
                                     startAdornment: (
                                         <InputAdornment position="start">
@@ -244,32 +336,88 @@ const Login = () => {
                                 }}
                             />
 
+                            {isRegister && (
+                                <TextField
+                                    fullWidth
+                                    label={t('login.confirmPassword')}
+                                    type={showPassword ? 'text' : 'password'}
+                                    value={confirmPassword}
+                                    onChange={(e) => setConfirmPassword(e.target.value)}
+                                    sx={{ mb: 3 }}
+                                    InputProps={{
+                                        startAdornment: (
+                                            <InputAdornment position="start">
+                                                <LockIcon color="action" />
+                                            </InputAdornment>
+                                        ),
+                                    }}
+                                />
+                            )}
+
                             <Button
                                 type="submit"
                                 fullWidth
                                 variant="contained"
                                 size="large"
                                 disabled={loading}
-                                startIcon={loading ? <CircularProgress size={20} color="inherit" /> : <LoginIcon />}
+                                startIcon={
+                                    loading ? (
+                                        <CircularProgress size={20} color="inherit" />
+                                    ) : isRegister ? (
+                                        <PersonAddIcon />
+                                    ) : (
+                                        <LoginIcon />
+                                    )
+                                }
                                 sx={{
                                     py: 1.5,
                                     fontSize: '1rem',
                                     fontWeight: 700,
                                     borderRadius: 3,
-                                    background: 'linear-gradient(135deg, #5C6BC0, #3949AB)',
-                                    boxShadow: '0 4px 16px rgba(92, 107, 192, 0.4)',
+                                    background: isRegister
+                                        ? 'linear-gradient(135deg, #26A69A, #00897B)'
+                                        : 'linear-gradient(135deg, #5C6BC0, #3949AB)',
+                                    boxShadow: isRegister
+                                        ? '0 4px 16px rgba(38, 166, 154, 0.4)'
+                                        : '0 4px 16px rgba(92, 107, 192, 0.4)',
                                     '&:hover': {
-                                        background: 'linear-gradient(135deg, #3949AB, #283593)',
-                                        boxShadow: '0 6px 20px rgba(92, 107, 192, 0.5)',
+                                        background: isRegister
+                                            ? 'linear-gradient(135deg, #00897B, #00695C)'
+                                            : 'linear-gradient(135deg, #3949AB, #283593)',
+                                        boxShadow: isRegister
+                                            ? '0 6px 20px rgba(38, 166, 154, 0.5)'
+                                            : '0 6px 20px rgba(92, 107, 192, 0.5)',
                                     },
                                 }}
                             >
-                                {loading ? t('login.loading') : t('login.submit')}
+                                {loading
+                                    ? isRegister
+                                        ? t('login.registering')
+                                        : t('login.loading')
+                                    : isRegister
+                                        ? t('login.register')
+                                        : t('login.submit')
+                                }
                             </Button>
                         </Box>
 
+                        {/* Mod değiştirme */}
+                        <Box sx={{ textAlign: 'center', mt: 3 }}>
+                            <Typography variant="body2" color="text.secondary">
+                                {isRegister ? t('login.hasAccount') : t('login.noAccount')}{' '}
+                                <Link
+                                    component="button"
+                                    variant="body2"
+                                    onClick={handleToggleMode}
+                                    sx={{ fontWeight: 600, cursor: 'pointer' }}
+                                >
+                                    {isRegister ? t('login.switchToLogin') : t('login.switchToRegister')}
+                                </Link>
+                            </Typography>
+                        </Box>
+
                         {/* Alt bilgi */}
-                        <Box sx={{ textAlign: 'center', mt: 4 }}>
+                        <Box sx={{ textAlign: 'center', mt: 3 }}>
                             <Typography variant="caption" color="text.disabled">
                                 {t('login.copyright')}
                             </Typography>

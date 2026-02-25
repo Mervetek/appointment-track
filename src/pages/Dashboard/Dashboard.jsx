@@ -29,6 +29,7 @@ import {
     Warning as WarningIcon,
 } from '@mui/icons-material';
 import { useApp } from '../../context/AppContext';
+import { useAuth } from '../../context/AuthContext';
 import { useLanguage } from '../../context/LanguageContext';
 import {
     formatTime,
@@ -83,6 +84,7 @@ const Dashboard = () => {
         getPendingPayments,
         getClientById,
     } = useApp();
+    const { getUserName } = useAuth();
     const { t, language, getSessionStatusLabels } = useLanguage();
     const SESSION_STATUS_LABELS = getSessionStatusLabels();
 
@@ -110,7 +112,7 @@ const Dashboard = () => {
             {/* Header */}
             <Box sx={{ mb: { xs: 2, sm: 3, md: 4 } }}>
                 <Typography variant="h4" gutterBottom sx={{ fontSize: { xs: '1.5rem', sm: '1.75rem', md: '2.125rem' } }}>
-                    {t('dashboard.welcome')}
+                    {t('dashboard.welcome', { name: getUserName() })}
                 </Typography>
                 <Typography variant="body1" color="text.secondary">
                     {t('dashboard.subtitle')}

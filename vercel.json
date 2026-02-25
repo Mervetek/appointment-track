@@ -1,5 +1,7 @@
 {
-    "alias": ["okonag.vercel.app"],
+    "alias": [
+        "okonag.vercel.app"
+    ],
     "rewrites": [
         {
             "source": "/(.*)",

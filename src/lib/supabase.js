@@ -161,8 +161,44 @@ export const checkAndSeedData = async (sampleClients, generateSampleSessions) =>
     };
 };
 
+// ===================== USERS =====================
+
+export const fetchUserByUsername = async (username) => {
+    const { data, error } = await supabase
+        .from('users')
+        .select('*')
+        .eq('username', username.toLowerCase().trim())
+        .single();
+    if (error && error.code !== 'PGRST116') throw error; // PGRST116 = no rows
+    return data ? mapUserFromDb(data) : null;
+};
+
+export const insertUser = async (user) => {
+    const { data, error } = await supabase
+        .from('users')
+        .insert({
+            username: user.username.toLowerCase().trim(),
+            password_hash: user.passwordHash,
+            full_name: user.fullName,
+            title: user.title || '',
+        })
+        .select()
+        .single();
+    if (error) throw error;
+    return mapUserFromDb(data);
+};
+
 // ===================== MAPPERS =====================
 // Uygulama camelCase kullanıyor, PostgreSQL snake_case kullanıyor
+
+const mapUserFromDb = (row) => ({
+    id: row.id,
+    username: row.username,
+    passwordHash: row.password_hash,
+    fullName: row.full_name,
+    title: row.title || '',
+    createdAt: row.created_at,
+});
 
 const mapClientFromDb = (row) => ({
     id: row.id,
