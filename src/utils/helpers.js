@@ -78,7 +78,38 @@ export const PAYMENT_STATUS_COLORS = {
     [PAYMENT_STATUS.PARTIAL]: '#1976d2',
 };
 
-export const DEFAULT_SESSION_FEE = 1500;
+// ===================== SESSION TYPE =====================
+export const SESSION_TYPE = {
+    FACE_TO_FACE: 'face_to_face',
+    ONLINE: 'online',
+};
+
+export const SESSION_TYPE_COLORS = {
+    [SESSION_TYPE.FACE_TO_FACE]: '#5C6BC0',
+    [SESSION_TYPE.ONLINE]: '#00ACC1',
+};
+
+// ===================== CLIENT COLORS =====================
+// Danışanlara sabit renk atamak için palet
+const CLIENT_COLOR_PALETTE = [
+    '#5C6BC0', '#26A69A', '#EF5350', '#AB47BC', '#FF7043',
+    '#66BB6A', '#42A5F5', '#FFA726', '#EC407A', '#8D6E63',
+    '#78909C', '#7E57C2', '#29B6F6', '#D4E157', '#FFCA28',
+    '#26C6DA', '#9CCC65', '#FF8A65', '#CE93D8', '#A1887F',
+];
+
+export const getClientColor = (clientId) => {
+    if (!clientId) return CLIENT_COLOR_PALETTE[0];
+    // Basit hash — aynı clientId her zaman aynı rengi alır
+    let hash = 0;
+    for (let i = 0; i < clientId.length; i++) {
+        hash = ((hash << 5) - hash) + clientId.charCodeAt(i);
+        hash |= 0;
+    }
+    return CLIENT_COLOR_PALETTE[Math.abs(hash) % CLIENT_COLOR_PALETTE.length];
+};
+
+export const DEFAULT_SESSION_FEE = 2000;
 
 export const formatCurrency = (amount) => {
     return new Intl.NumberFormat('tr-TR', {

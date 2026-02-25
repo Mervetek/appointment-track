@@ -66,6 +66,7 @@ const emptySession = {
     duration: 50,
     status: 'scheduled',
     fee: DEFAULT_SESSION_FEE,
+    sessionType: 'face_to_face',
     paymentStatus: 'pending',
     mood: '',
     notes: '',
@@ -128,6 +129,7 @@ const ClientDetail = () => {
                 date: d.toISOString().split('T')[0],
                 time: d.toTimeString().slice(0, 5),
                 mood: session.mood || '',
+                sessionType: session.sessionType || 'face_to_face',
             });
         } else {
             setEditingSession(null);
@@ -381,7 +383,9 @@ const ClientDetail = () => {
                                                     secondary={
                                                         <Box sx={{ mt: 0.5 }}>
                                                             <Typography variant="body2" color="text.secondary">
-                                                                {session.duration} dk • {formatCurrency(session.fee)}
+                                                                {session.sessionType === 'online' ? '💻' : '🏢'}{' '}
+                                                                {t(`calendar.sessionType.${session.sessionType || 'face_to_face'}`)}
+                                                                {' • '}{session.duration} dk • {formatCurrency(session.fee)}
                                                             </Typography>
                                                             {session.notes && (
                                                                 <Typography variant="body2" sx={{ mt: 0.5 }}>📝 {session.notes}</Typography>
@@ -509,6 +513,19 @@ const ClientDetail = () => {
                                     <MenuItem value="pending">{PAYMENT_STATUS_LABELS.pending}</MenuItem>
                                     <MenuItem value="paid">{PAYMENT_STATUS_LABELS.paid}</MenuItem>
                                     <MenuItem value="partial">{PAYMENT_STATUS_LABELS.partial}</MenuItem>
+                                </Select>
+                            </FormControl>
+                        </Grid>
+                        <Grid size={{ xs: 12 }}>
+                            <FormControl fullWidth>
+                                <InputLabel>{t('calendar.sessionType')}</InputLabel>
+                                <Select
+                                    value={sessionForm.sessionType}
+                                    label={t('calendar.sessionType')}
+                                    onChange={(e) => setSessionForm({ ...sessionForm, sessionType: e.target.value })}
+                                >
+                                    <MenuItem value="face_to_face">🏢 {t('calendar.sessionType.face_to_face')}</MenuItem>
+                                    <MenuItem value="online">💻 {t('calendar.sessionType.online')}</MenuItem>
                                 </Select>
                             </FormControl>
                         </Grid>

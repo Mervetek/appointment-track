@@ -21,7 +21,7 @@ import {
     useMediaQuery,
     useTheme,
 } from '@mui/material';
-import { Add as AddIcon } from '@mui/icons-material';
+import { Add as AddIcon, Laptop as LaptopIcon, Person as PersonIcon } from '@mui/icons-material';
 import FullCalendar from '@fullcalendar/react';
 import dayGridPlugin from '@fullcalendar/daygrid';
 import timeGridPlugin from '@fullcalendar/timegrid';
@@ -33,6 +33,8 @@ import {
     DEFAULT_SESSION_FEE,
     formatDateTime,
     formatCurrency,
+    getClientColor,
+    SESSION_TYPE_COLORS,
 } from '../../utils/helpers';
 
 const Calendar = () => {
@@ -53,6 +55,7 @@ const Calendar = () => {
         time: '',
         duration: 50,
         fee: DEFAULT_SESSION_FEE,
+        sessionType: 'face_to_face',
         status: 'scheduled',
         paymentStatus: 'pending',
         notes: '',
@@ -62,17 +65,25 @@ const Calendar = () => {
         () =>
             sessions.map((s) => {
                 const client = getClientById(s.clientId);
+                const clientColor = getClientColor(s.clientId);
+                const isOnline = s.sessionType === 'online';
+                const typeLabel = isOnline
+                    ? t('calendar.sessionType.short.online')
+                    : t('calendar.sessionType.short.face_to_face');
+                const clientName = client ? `${client.firstName} ${client.lastName}` : t('calendar.unknown');
                 return {
                     id: s.id,
-                    title: client ? `${client.firstName} ${client.lastName}` : t('calendar.unknown'),
+                    title: `${isOnline ? '💻' : '🏢'} ${clientName}`,
                     start: s.date,
                     end: new Date(new Date(s.date).getTime() + s.duration * 60000).toISOString(),
-                    backgroundColor: SESSION_STATUS_COLORS[s.status] || '#1976d2',
-                    borderColor: SESSION_STATUS_COLORS[s.status] || '#1976d2',
+                    backgroundColor: clientColor,
+                    borderColor: clientColor,
+                    borderWidth: 2,
+                    textColor: '#fff',
                     extendedProps: { session: s, client },
                 };
             }),
-        [sessions, getClientById]
+        [sessions, getClientById, t]
     );
 
     const handleEventClick = (info) => {
@@ -113,6 +124,7 @@ const Calendar = () => {
                 time: '',
                 duration: 50,
                 fee: DEFAULT_SESSION_FEE,
+                sessionType: 'face_to_face',
                 status: 'scheduled',
                 paymentStatus: 'pending',
                 notes: '',
@@ -136,6 +148,17 @@ const Calendar = () => {
                 <Button variant="contained" startIcon={<AddIcon />} onClick={() => setAddDialogOpen(true)}>
                     {t('calendar.newAppointment')}
                 </Button>
+            </Box>
+
+            {/* Lejant */}
+            <Box sx={{ display: 'flex', gap: 2, mb: 2, flexWrap: 'wrap', alignItems: 'center' }}>
+                <Chip icon={<PersonIcon />} label={t('calendar.sessionType.face_to_face')} size="small" variant="outlined"
+                    sx={{ fontWeight: 500, '& .MuiChip-icon': { fontSize: 16 } }} />
+                <Chip icon={<LaptopIcon />} label={t('calendar.sessionType.online')} size="small" variant="outlined"
+                    sx={{ fontWeight: 500, '& .MuiChip-icon': { fontSize: 16 } }} />
+                <Typography variant="caption" color="text.secondary" sx={{ ml: 1 }}>
+                    🏢 = {t('calendar.sessionType.face_to_face')} &nbsp; 💻 = {t('calendar.sessionType.online')}
+                </Typography>
             </Box>
 
             <Card>
@@ -208,6 +231,21 @@ const Calendar = () => {
                                 <Grid size={{ xs: 6 }}>
                                     <Typography variant="caption" color="text.secondary">{t('calendar.fee')}</Typography>
                                     <Typography>{formatCurrency(selectedEvent.session.fee)}</Typography>
+                                </Grid>
+                                <Grid size={{ xs: 6 }}>
+                                    <Typography variant="caption" color="text.secondary">{t('calendar.sessionType')}</Typography>
+                                    <Box>
+                                        <Chip
+                                            icon={selectedEvent.session.sessionType === 'online' ? <LaptopIcon /> : <PersonIcon />}
+                                            label={t(`calendar.sessionType.${selectedEvent.session.sessionType || 'face_to_face'}`)}
+                                            size="small"
+                                            sx={{
+                                                bgcolor: selectedEvent.session.sessionType === 'online' ? '#00ACC115' : '#5C6BC015',
+                                                color: selectedEvent.session.sessionType === 'online' ? '#00ACC1' : '#5C6BC0',
+                                                fontWeight: 600,
+                                            }}
+                                        />
+                                    </Box>
                                 </Grid>
                                 <Grid size={{ xs: 6 }}>
                                     <Typography variant="caption" color="text.secondary">{t('calendar.status')}</Typography>
@@ -315,6 +353,19 @@ const Calendar = () => {
                                 value={newSession.fee}
                                 onChange={(e) => setNewSession({ ...newSession, fee: e.target.value })}
                             />
+                        </Grid>
+                        <Grid size={{ xs: 12 }}>
+                            <FormControl fullWidth>
+                                <InputLabel>{t('calendar.sessionType')}</InputLabel>
+                                <Select
+                                    value={newSession.sessionType}
+                                    label={t('calendar.sessionType')}
+                                    onChange={(e) => setNewSession({ ...newSession, sessionType: e.target.value })}
+                                >
+                                    <MenuItem value="face_to_face">🏢 {t('calendar.sessionType.face_to_face')}</MenuItem>
+                                    <MenuItem value="online">💻 {t('calendar.sessionType.online')}</MenuItem>
+                                </Select>
+                            </FormControl>
                         </Grid>
                         <Grid size={{ xs: 12 }}>
                             <TextField
