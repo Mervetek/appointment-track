@@ -252,6 +252,19 @@ const translations = {
         'mood.normal': 'Normal',
         'mood.good': 'İyi',
         'mood.veryGood': 'Çok İyi',
+
+        // Notifications
+        'notification.title': '🔔 Randevu Hatırlatması',
+        'notification.body': '{minutes} dakika sonra {client} ile görüşmeniz var!',
+        'notification.upcoming': 'Yaklaşan Randevular',
+        'notification.noUpcoming': 'Yaklaşan randevu yok',
+        'notification.minutesLeft': '{minutes} dk sonra',
+        'notification.enableTitle': 'Bildirimleri Aç',
+        'notification.enableDesc': 'Randevularınızdan 15 dk önce bildirim almak ister misiniz?',
+        'notification.enable': 'Bildirimleri Etkinleştir',
+        'notification.later': 'Daha Sonra',
+        'notification.denied': 'Bildirimler engellendi. Tarayıcı ayarlarından izin verin.',
+        'notification.enabled': 'Bildirimler etkinleştirildi ✓',
     },
     en: {
         // Layout & Nav
@@ -506,6 +519,19 @@ const translations = {
         'mood.normal': 'Normal',
         'mood.good': 'Good',
         'mood.veryGood': 'Very Good',
+
+        // Notifications
+        'notification.title': '🔔 Appointment Reminder',
+        'notification.body': 'You have a session with {client} in {minutes} minutes!',
+        'notification.upcoming': 'Upcoming Appointments',
+        'notification.noUpcoming': 'No upcoming appointments',
+        'notification.minutesLeft': 'in {minutes} min',
+        'notification.enableTitle': 'Enable Notifications',
+        'notification.enableDesc': 'Would you like to receive reminders 15 minutes before your appointments?',
+        'notification.enable': 'Enable Notifications',
+        'notification.later': 'Later',
+        'notification.denied': 'Notifications are blocked. Please enable in browser settings.',
+        'notification.enabled': 'Notifications enabled ✓',
     },
 };
 

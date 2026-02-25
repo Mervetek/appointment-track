@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Outlet, useNavigate, useLocation } from 'react-router-dom';
 import {
     Box,
@@ -19,6 +19,14 @@ import {
     Snackbar,
     Alert,
     Tooltip,
+    Badge,
+    Popover,
+    Chip,
+    Button,
+    Dialog,
+    DialogTitle,
+    DialogContent,
+    DialogActions,
 } from '@mui/material';
 import {
     Dashboard as DashboardIcon,
@@ -31,11 +39,17 @@ import {
     Logout as LogoutIcon,
     DarkMode as DarkModeIcon,
     LightMode as LightModeIcon,
+    Notifications as NotificationsIcon,
+    NotificationsActive as NotificationsActiveIcon,
+    AccessTime as AccessTimeIcon,
+    Close as CloseIcon,
 } from '@mui/icons-material';
 import { useApp } from '../../context/AppContext';
 import { useAuth } from '../../context/AuthContext';
 import { useThemeMode } from '../../context/ThemeContext';
 import { useLanguage } from '../../context/LanguageContext';
+import { useNotifications } from '../../hooks/useNotifications';
+import { SESSION_TYPE_COLORS } from '../../utils/helpers';
 
 const DRAWER_WIDTH = 260;
 const DRAWER_WIDTH_TABLET = 220;
@@ -50,10 +64,56 @@ const Layout = () => {
     const [mobileOpen, setMobileOpen] = useState(false);
     const navigate = useNavigate();
     const location = useLocation();
-    const { snackbar, dispatch } = useApp();
+    const { snackbar, dispatch, sessions, getClientById } = useApp();
     const { signOut, getUserName } = useAuth();
     const { toggleTheme, isDark } = useThemeMode();
     const { t, language, toggleLanguage } = useLanguage();
+
+    // Notification system
+    const {
+        permission,
+        requestPermission,
+        upcomingAlerts,
+        unreadCount,
+        markAllRead,
+        dismissAlert,
+    } = useNotifications(sessions, getClientById, t);
+
+    const [notifAnchor, setNotifAnchor] = useState(null);
+    const [permissionDialogOpen, setPermissionDialogOpen] = useState(false);
+
+    // İlk login'de bildirim izni sor (sadece 'default' ise)
+    useEffect(() => {
+        if (permission === 'default') {
+            const dismissed = sessionStorage.getItem('notif_dismissed');
+            if (!dismissed) {
+                const timer = setTimeout(() => setPermissionDialogOpen(true), 2000);
+                return () => clearTimeout(timer);
+            }
+        }
+    }, [permission]);
+
+    const handleEnableNotifications = async () => {
+        const result = await requestPermission();
+        setPermissionDialogOpen(false);
+        if (result === 'granted') {
+            dispatch({ type: 'SHOW_SNACKBAR', payload: { message: t('notification.enabled'), severity: 'success' } });
+        } else if (result === 'denied') {
+            dispatch({ type: 'SHOW_SNACKBAR', payload: { message: t('notification.denied'), severity: 'warning' } });
+        }
+    };
+
+    const handleDismissPermission = () => {
+        setPermissionDialogOpen(false);
+        sessionStorage.setItem('notif_dismissed', '1');
+    };
+
+    const handleNotifClick = (e) => {
+        setNotifAnchor(e.currentTarget);
+        markAllRead();
+    };
+
+    const handleNotifClose = () => setNotifAnchor(null);
 
     const menuItems = [
         { text: t('nav.dashboard'), icon: <DashboardIcon />, path: '/' },
@@ -204,6 +264,27 @@ const Layout = () => {
                     )}
                     {!showTemporaryDrawer && <Box sx={{ flex: 1 }} />}
 
+                    {/* Bildirim çanı */}
+                    <Tooltip title={t('notification.upcoming')}>
+                        <IconButton
+                            onClick={handleNotifClick}
+                            size="small"
+                            sx={{ mr: 0.5, color: 'text.secondary' }}
+                        >
+                            <Badge
+                                badgeContent={unreadCount}
+                                color="error"
+                                max={9}
+                            >
+                                {unreadCount > 0 ? (
+                                    <NotificationsActiveIcon fontSize="small" sx={{ color: 'warning.main' }} />
+                                ) : (
+                                    <NotificationsIcon fontSize="small" />
+                                )}
+                            </Badge>
+                        </IconButton>
+                    </Tooltip>
+
                     {/* Dil değişimi butonu */}
                     <Tooltip title={t('lang.switch')}>
                         <IconButton
@@ -301,6 +382,102 @@ const Layout = () => {
                     {snackbar.message}
                 </Alert>
             </Snackbar>
+
+            {/* Bildirim Popover */}
+            <Popover
+                open={Boolean(notifAnchor)}
+                anchorEl={notifAnchor}
+                onClose={handleNotifClose}
+                anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
+                transformOrigin={{ vertical: 'top', horizontal: 'right' }}
+                slotProps={{
+                    paper: {
+                        sx: { width: 340, maxHeight: 400, borderRadius: 3, mt: 1 },
+                    },
+                }}
+            >
+                <Box sx={{ p: 2, borderBottom: '1px solid', borderColor: 'divider', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                    <Typography variant="subtitle1" fontWeight={700}>
+                        🔔 {t('notification.upcoming')}
+                    </Typography>
+                    {permission !== 'granted' && (
+                        <Button size="small" variant="outlined" onClick={() => { handleNotifClose(); setPermissionDialogOpen(true); }}>
+                            {t('notification.enable')}
+                        </Button>
+                    )}
+                </Box>
+                {upcomingAlerts.length === 0 ? (
+                    <Box sx={{ p: 3, textAlign: 'center' }}>
+                        <NotificationsIcon sx={{ fontSize: 40, color: 'text.disabled', mb: 1 }} />
+                        <Typography variant="body2" color="text.secondary">
+                            {t('notification.noUpcoming')}
+                        </Typography>
+                    </Box>
+                ) : (
+                    <List sx={{ p: 0 }}>
+                        {upcomingAlerts.map((alert) => {
+                            const stColor = SESSION_TYPE_COLORS[alert.sessionType] || SESSION_TYPE_COLORS.face_to_face;
+                            const typeEmoji = alert.sessionType === 'hiwell' ? '🟣' : alert.sessionType === 'online' ? '💻' : '🏢';
+                            return (
+                                <ListItem
+                                    key={alert.id}
+                                    sx={{
+                                        borderBottom: '1px solid',
+                                        borderColor: 'divider',
+                                        bgcolor: alert.read ? 'transparent' : 'action.hover',
+                                    }}
+                                    secondaryAction={
+                                        <IconButton size="small" onClick={() => dismissAlert(alert.id)}>
+                                            <CloseIcon fontSize="small" />
+                                        </IconButton>
+                                    }
+                                >
+                                    <ListItemIcon sx={{ minWidth: 36 }}>
+                                        <AccessTimeIcon sx={{ color: 'warning.main' }} />
+                                    </ListItemIcon>
+                                    <ListItemText
+                                        primary={
+                                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                                                <Typography variant="body2" fontWeight={600}>
+                                                    {typeEmoji} {alert.clientName}
+                                                </Typography>
+                                            </Box>
+                                        }
+                                        secondary={
+                                            <Chip
+                                                label={t('notification.minutesLeft').replace('{minutes}', alert.minutesLeft)}
+                                                size="small"
+                                                sx={{ mt: 0.5, bgcolor: `${stColor}20`, color: stColor, fontWeight: 600, fontSize: '0.75rem' }}
+                                            />
+                                        }
+                                    />
+                                </ListItem>
+                            );
+                        })}
+                    </List>
+                )}
+            </Popover>
+
+            {/* Bildirim İzni Dialog */}
+            <Dialog open={permissionDialogOpen} onClose={handleDismissPermission} maxWidth="xs" fullWidth>
+                <DialogTitle sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                    <NotificationsActiveIcon color="warning" />
+                    {t('notification.enableTitle')}
+                </DialogTitle>
+                <DialogContent>
+                    <Typography variant="body2" color="text.secondary">
+                        {t('notification.enableDesc')}
+                    </Typography>
+                </DialogContent>
+                <DialogActions sx={{ p: 2 }}>
+                    <Button onClick={handleDismissPermission} color="inherit">
+                        {t('notification.later')}
+                    </Button>
+                    <Button variant="contained" onClick={handleEnableNotifications}>
+                        {t('notification.enable')}
+                    </Button>
+                </DialogActions>
+            </Dialog>
         </Box>
     );
 };
