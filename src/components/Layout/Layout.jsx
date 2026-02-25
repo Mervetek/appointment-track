@@ -49,7 +49,10 @@ import { useAuth } from '../../context/AuthContext';
 import { useThemeMode } from '../../context/ThemeContext';
 import { useLanguage } from '../../context/LanguageContext';
 import { useNotifications } from '../../hooks/useNotifications';
+import { usePlan } from '../../hooks/usePlan';
 import { SESSION_TYPE_COLORS } from '../../utils/helpers';
+import PlanBadge from '../PlanBadge/PlanBadge';
+import UpgradeDialog from '../UpgradeDialog/UpgradeDialog';
 
 const DRAWER_WIDTH = 260;
 const DRAWER_WIDTH_TABLET = 220;
@@ -64,10 +67,13 @@ const Layout = () => {
     const [mobileOpen, setMobileOpen] = useState(false);
     const navigate = useNavigate();
     const location = useLocation();
-    const { snackbar, dispatch, sessions, getClientById } = useApp();
+    const { snackbar, dispatch, sessions, getClientById, clients } = useApp();
     const { signOut, getUserName } = useAuth();
     const { toggleTheme, isDark } = useThemeMode();
     const { t, language, toggleLanguage } = useLanguage();
+
+    // Plan system
+    const planInfo = usePlan(clients?.length || 0);
 
     // Notification system
     const {
@@ -266,6 +272,15 @@ const Layout = () => {
                         </>
                     )}
                     {!showTemporaryDrawer && <Box sx={{ flex: 1 }} />}
+
+                    {/* Plan Badge */}
+                    <PlanBadge
+                        planInfo={planInfo}
+                        t={t}
+                        onClick={() => planInfo.promptUpgrade(
+                            planInfo.isPremium ? '' : t('plan.featureLocked')
+                        )}
+                    />
 
                     {/* Bildirim çanı */}
                     <Tooltip title={t('notification.upcoming')}>
@@ -496,6 +511,14 @@ const Layout = () => {
                     </Button>
                 </DialogActions>
             </Dialog>
+
+            {/* Upgrade Dialog */}
+            <UpgradeDialog
+                open={planInfo.showUpgradeDialog}
+                onClose={planInfo.closeUpgradeDialog}
+                reason={planInfo.upgradeReason}
+                t={t}
+            />
         </Box>
     );
 };

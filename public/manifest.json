@@ -9,7 +9,11 @@
     "theme_color": "#5C6BC0",
     "orientation": "any",
     "lang": "tr",
-    "categories": ["medical", "productivity", "business"],
+    "categories": [
+        "medical",
+        "productivity",
+        "business"
+    ],
     "icons": [
         {
             "src": "/icons/icon-48x48.png",

@@ -43,6 +43,7 @@ import {
 } from '@mui/icons-material';
 import { useApp } from '../../context/AppContext';
 import { useLanguage } from '../../context/LanguageContext';
+import { usePlan } from '../../hooks/usePlan';
 import { formatDate } from '../../utils/helpers';
 
 const emptyClient = {
@@ -62,6 +63,7 @@ const ClientList = () => {
     const navigate = useNavigate();
     const { clients, sessions, loading, addClient, editClient, removeClient, showSnackbar, getSessionsByClient } = useApp();
     const { t } = useLanguage();
+    const { canAddClient, clientsRemaining, clientLimit, isPremium, promptUpgrade } = usePlan(clients.length);
     const [search, setSearch] = useState('');
     const [dialogOpen, setDialogOpen] = useState(false);
     const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
@@ -87,6 +89,11 @@ const ClientList = () => {
             setEditingClient(client);
             setFormData({ ...client });
         } else {
+            // Yeni danışan ekleme — plan kontrolü
+            if (!canAddClient) {
+                promptUpgrade(t('plan.clientLimitReached').replace('{limit}', clientLimit));
+                return;
+            }
             setEditingClient(null);
             setFormData(emptyClient);
         }
@@ -156,6 +163,22 @@ const ClientList = () => {
                     {t('clients.new')}
                 </Button>
             </Box>
+
+            {/* Plan limit bilgisi */}
+            {!isPremium && (
+                <Box sx={{ mb: 2 }}>
+                    <Chip
+                        label={
+                            canAddClient
+                                ? t('plan.clientsRemaining').replace('{remaining}', clientsRemaining)
+                                : t('plan.clientLimitReached').replace('{limit}', clientLimit)
+                        }
+                        color={canAddClient ? 'info' : 'warning'}
+                        variant="outlined"
+                        size="small"
+                    />
+                </Box>
+            )}
 
             {/* Arama & Filtre */}
             <Card sx={{ mb: 3 }}>

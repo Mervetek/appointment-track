@@ -91,6 +91,60 @@ export const SESSION_TYPE_COLORS = {
     [SESSION_TYPE.HIWELL]: '#9C27B0',         // mor
 };
 
+// ===================== PLAN =====================
+export const PLAN = {
+    FREE: 'free',
+    PREMIUM: 'premium',
+};
+
+export const TRIAL_DAYS = 14;
+export const FREE_CLIENT_LIMIT = 5;
+
+export const PREMIUM_FEATURES = {
+    NOTIFICATIONS: 'notifications',
+    EXPORT: 'export',
+    SESSION_NOTES: 'session_notes',
+    ADVANCED_STATS: 'advanced_stats',
+    UNLIMITED_CLIENTS: 'unlimited_clients',
+};
+
+// Plan hesaplama yardımcıları
+export const calculatePlanInfo = (user) => {
+    if (!user) return { plan: PLAN.FREE, isTrial: false, trialDaysLeft: 0, isPremium: false };
+
+    const now = new Date();
+    const plan = user.plan || PLAN.PREMIUM; // default premium (trial)
+    const trialEnd = user.trialEnd ? new Date(user.trialEnd) : 
+        user.createdAt ? new Date(new Date(user.createdAt).getTime() + TRIAL_DAYS * 24 * 60 * 60 * 1000) :
+        new Date(now.getTime() + TRIAL_DAYS * 24 * 60 * 60 * 1000);
+    const subscriptionEnd = user.subscriptionEnd ? new Date(user.subscriptionEnd) : null;
+
+    const trialDaysLeft = Math.max(0, Math.ceil((trialEnd.getTime() - now.getTime()) / (1000 * 60 * 60 * 24)));
+    const isTrialActive = plan === PLAN.PREMIUM && trialDaysLeft > 0 && !subscriptionEnd;
+    const isSubscriptionActive = subscriptionEnd && subscriptionEnd > now;
+    const isPremium = isTrialActive || isSubscriptionActive || plan === PLAN.PREMIUM;
+
+    // Trial bittiyse ve abonelik yoksa → free plana düş
+    const effectivePlan = isPremium ? PLAN.PREMIUM : PLAN.FREE;
+
+    return {
+        plan: effectivePlan,
+        isTrial: isTrialActive,
+        trialDaysLeft,
+        trialEnd,
+        isPremium: effectivePlan === PLAN.PREMIUM,
+        isSubscriptionActive: !!isSubscriptionActive,
+        subscriptionEnd,
+    };
+};
+
+export const canUseFeature = (planInfo, feature) => {
+    if (planInfo.isPremium) return true;
+    // Ücretsiz planda kullanılabilir özellikler
+    const freeFeatures = ['basic_calendar', 'basic_dashboard', 'session_types'];
+    return freeFeatures.includes(feature);
+};
+
 export const DEFAULT_SESSION_FEE = 2000;
 
 export const formatCurrency = (amount) => {

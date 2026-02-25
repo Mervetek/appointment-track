@@ -202,6 +202,10 @@ const mapUserFromDb = (row) => ({
     passwordHash: row.password_hash,
     fullName: row.full_name,
     title: row.title || '',
+    plan: row.plan || 'premium',
+    trialStart: row.trial_start || row.created_at,
+    trialEnd: row.trial_end || null,
+    subscriptionEnd: row.subscription_end || null,
     createdAt: row.created_at,
 });
 

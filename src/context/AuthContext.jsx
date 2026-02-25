@@ -70,6 +70,11 @@ export const AuthProvider = ({ children }) => {
                 username: newUser.username,
                 fullName: newUser.fullName,
                 title: newUser.title,
+                plan: newUser.plan || 'premium',
+                trialStart: newUser.trialStart || newUser.createdAt,
+                trialEnd: newUser.trialEnd,
+                subscriptionEnd: newUser.subscriptionEnd,
+                createdAt: newUser.createdAt,
             };
             saveSession(userData);
             return { user: userData, error: null };
@@ -98,6 +103,11 @@ export const AuthProvider = ({ children }) => {
                 username: foundUser.username,
                 fullName: foundUser.fullName,
                 title: foundUser.title,
+                plan: foundUser.plan || 'premium',
+                trialStart: foundUser.trialStart || foundUser.createdAt,
+                trialEnd: foundUser.trialEnd,
+                subscriptionEnd: foundUser.subscriptionEnd,
+                createdAt: foundUser.createdAt,
             };
             saveSession(userData);
             return { user: userData, error: null };
