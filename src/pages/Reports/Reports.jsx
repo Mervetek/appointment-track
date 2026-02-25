@@ -22,13 +22,17 @@ import {
     Legend,
 } from 'recharts';
 import { useApp } from '../../context/AppContext';
-import { formatCurrency, SESSION_STATUS_LABELS, MOOD_OPTIONS } from '../../utils/helpers';
+import { useLanguage } from '../../context/LanguageContext';
+import { formatCurrency } from '../../utils/helpers';
 import dayjs from 'dayjs';
 
 const COLORS = ['#5C6BC0', '#26A69A', '#fb8c00', '#e53935', '#43a047', '#8E99E8'];
 
 const Reports = () => {
     const { sessions, clients } = useApp();
+    const { t, getSessionStatusLabels, getMoodOptions } = useLanguage();
+    const SESSION_STATUS_LABELS = getSessionStatusLabels();
+    const MOOD_OPTIONS = getMoodOptions();
 
     // Aylık Gelir
     const monthlyRevenue = useMemo(() => {
@@ -110,64 +114,64 @@ const Reports = () => {
 
     return (
         <Box>
-            <Box sx={{ mb: 3 }}>
-                <Typography variant="h4">Raporlar</Typography>
+            <Box sx={{ mb: { xs: 2, md: 3 } }}>
+                <Typography variant="h4" sx={{ fontSize: { xs: '1.5rem', sm: '1.75rem', md: '2.125rem' } }}>{t('reports.title')}</Typography>
                 <Typography variant="body2" color="text.secondary">
-                    İstatistikler ve analitik veriler
+                    {t('reports.subtitle')}
                 </Typography>
             </Box>
 
             {/* Özet */}
-            <Grid container spacing={3} sx={{ mb: 3 }}>
+            <Grid container spacing={{ xs: 1.5, sm: 2, md: 3 }} sx={{ mb: { xs: 2, md: 3 } }}>
                 <Grid size={{ xs: 6, sm: 3 }}>
                     <Card>
-                        <CardContent sx={{ textAlign: 'center' }}>
-                            <Typography variant="h4" fontWeight={700} color="primary">{totalSessions}</Typography>
-                            <Typography variant="caption" color="text.secondary">Toplam Seans</Typography>
+                        <CardContent sx={{ textAlign: 'center', p: { xs: 1.5, md: 3 }, '&:last-child': { pb: { xs: 1.5, md: 3 } } }}>
+                            <Typography variant="h4" fontWeight={700} color="primary" sx={{ fontSize: { xs: '1.5rem', sm: '1.75rem', md: '2.125rem' } }}>{totalSessions}</Typography>
+                            <Typography variant="caption" color="text.secondary">{t('reports.totalSessions')}</Typography>
                         </CardContent>
                     </Card>
                 </Grid>
                 <Grid size={{ xs: 6, sm: 3 }}>
                     <Card>
-                        <CardContent sx={{ textAlign: 'center' }}>
-                            <Typography variant="h4" fontWeight={700} color="success.main">{completedSessions}</Typography>
-                            <Typography variant="caption" color="text.secondary">Tamamlanan</Typography>
+                        <CardContent sx={{ textAlign: 'center', p: { xs: 1.5, md: 3 }, '&:last-child': { pb: { xs: 1.5, md: 3 } } }}>
+                            <Typography variant="h4" fontWeight={700} color="success.main" sx={{ fontSize: { xs: '1.5rem', sm: '1.75rem', md: '2.125rem' } }}>{completedSessions}</Typography>
+                            <Typography variant="caption" color="text.secondary">{t('reports.completed')}</Typography>
                         </CardContent>
                     </Card>
                 </Grid>
                 <Grid size={{ xs: 6, sm: 3 }}>
                     <Card>
-                        <CardContent sx={{ textAlign: 'center' }}>
-                            <Typography variant="h5" fontWeight={700} color="primary">{formatCurrency(totalRevenue)}</Typography>
-                            <Typography variant="caption" color="text.secondary">Toplam Gelir</Typography>
+                        <CardContent sx={{ textAlign: 'center', p: { xs: 1.5, md: 3 }, '&:last-child': { pb: { xs: 1.5, md: 3 } } }}>
+                            <Typography variant="h5" fontWeight={700} color="primary" sx={{ fontSize: { xs: '1rem', sm: '1.25rem', md: '1.5rem' } }}>{formatCurrency(totalRevenue)}</Typography>
+                            <Typography variant="caption" color="text.secondary">{t('reports.totalRevenue')}</Typography>
                         </CardContent>
                     </Card>
                 </Grid>
                 <Grid size={{ xs: 6, sm: 3 }}>
                     <Card>
-                        <CardContent sx={{ textAlign: 'center' }}>
-                            <Typography variant="h5" fontWeight={700} color="secondary">{formatCurrency(avgFee)}</Typography>
-                            <Typography variant="caption" color="text.secondary">Ort. Seans Ücreti</Typography>
+                        <CardContent sx={{ textAlign: 'center', p: { xs: 1.5, md: 3 }, '&:last-child': { pb: { xs: 1.5, md: 3 } } }}>
+                            <Typography variant="h5" fontWeight={700} color="secondary" sx={{ fontSize: { xs: '1rem', sm: '1.25rem', md: '1.5rem' } }}>{formatCurrency(avgFee)}</Typography>
+                            <Typography variant="caption" color="text.secondary">{t('reports.avgFee')}</Typography>
                         </CardContent>
                     </Card>
                 </Grid>
             </Grid>
 
-            <Grid container spacing={3}>
+            <Grid container spacing={{ xs: 1.5, sm: 2, md: 3 }}>
                 {/* Aylık Gelir */}
                 <Grid size={{ xs: 12, md: 8 }}>
                     <Card>
-                        <CardContent>
-                            <Typography variant="h6" sx={{ mb: 2 }}>📊 Aylık Gelir</Typography>
+                        <CardContent sx={{ p: { xs: 1.5, sm: 2, md: 3 }, '&:last-child': { pb: { xs: 1.5, sm: 2, md: 3 } } }}>
+                            <Typography variant="h6" sx={{ mb: 2, fontSize: { xs: '0.95rem', md: '1.25rem' } }}>{t('reports.monthlyRevenue')}</Typography>
                             {monthlyRevenue.length === 0 ? (
-                                <Typography color="text.secondary" sx={{ textAlign: 'center', py: 4 }}>Henüz veri yok</Typography>
+                                <Typography color="text.secondary" sx={{ textAlign: 'center', py: 4 }}>{t('reports.noData')}</Typography>
                             ) : (
-                                <ResponsiveContainer width="100%" height={300}>
+                                <ResponsiveContainer width="100%" height={280}>
                                     <BarChart data={monthlyRevenue}>
                                         <CartesianGrid strokeDasharray="3 3" />
-                                        <XAxis dataKey="label" />
-                                        <YAxis tickFormatter={(v) => `₺${v / 1000}k`} />
-                                        <Tooltip formatter={(v) => [formatCurrency(v), 'Gelir']} />
+                                        <XAxis dataKey="label" fontSize={12} />
+                                        <YAxis tickFormatter={(v) => `₺${v / 1000}k`} fontSize={12} />
+                                        <Tooltip formatter={(v) => [formatCurrency(v), t('reports.revenue')]} />
                                         <Bar dataKey="revenue" fill="#5C6BC0" radius={[6, 6, 0, 0]} />
                                     </BarChart>
                                 </ResponsiveContainer>
@@ -179,19 +183,19 @@ const Reports = () => {
                 {/* Seans Durumu Dağılımı */}
                 <Grid size={{ xs: 12, md: 4 }}>
                     <Card>
-                        <CardContent>
-                            <Typography variant="h6" sx={{ mb: 2 }}>📋 Seans Durumları</Typography>
+                        <CardContent sx={{ p: { xs: 1.5, sm: 2, md: 3 }, '&:last-child': { pb: { xs: 1.5, sm: 2, md: 3 } } }}>
+                            <Typography variant="h6" sx={{ mb: 2, fontSize: { xs: '0.95rem', md: '1.25rem' } }}>{t('reports.sessionStatuses')}</Typography>
                             {statusDistribution.length === 0 ? (
-                                <Typography color="text.secondary" sx={{ textAlign: 'center', py: 4 }}>Henüz veri yok</Typography>
+                                <Typography color="text.secondary" sx={{ textAlign: 'center', py: 4 }}>{t('reports.noData')}</Typography>
                             ) : (
-                                <ResponsiveContainer width="100%" height={300}>
+                                <ResponsiveContainer width="100%" height={280}>
                                     <PieChart>
                                         <Pie
                                             data={statusDistribution}
                                             cx="50%"
                                             cy="50%"
-                                            innerRadius={60}
-                                            outerRadius={100}
+                                            innerRadius={50}
+                                            outerRadius={85}
                                             paddingAngle={4}
                                             dataKey="value"
                                         >
@@ -211,15 +215,15 @@ const Reports = () => {
                 {/* Haftalık Seans Sayısı */}
                 <Grid size={{ xs: 12, md: 6 }}>
                     <Card>
-                        <CardContent>
-                            <Typography variant="h6" sx={{ mb: 2 }}>📈 Haftalık Seans Sayısı</Typography>
-                            <ResponsiveContainer width="100%" height={250}>
+                        <CardContent sx={{ p: { xs: 1.5, sm: 2, md: 3 }, '&:last-child': { pb: { xs: 1.5, sm: 2, md: 3 } } }}>
+                            <Typography variant="h6" sx={{ mb: 2, fontSize: { xs: '0.95rem', md: '1.25rem' } }}>{t('reports.weeklySessions')}</Typography>
+                            <ResponsiveContainer width="100%" height={230}>
                                 <LineChart data={weeklySessions}>
                                     <CartesianGrid strokeDasharray="3 3" />
-                                    <XAxis dataKey="label" fontSize={11} />
-                                    <YAxis allowDecimals={false} />
+                                    <XAxis dataKey="label" fontSize={10} />
+                                    <YAxis allowDecimals={false} fontSize={12} />
                                     <Tooltip />
-                                    <Line type="monotone" dataKey="count" stroke="#26A69A" strokeWidth={3} dot={{ r: 5 }} name="Seans" />
+                                    <Line type="monotone" dataKey="count" stroke="#26A69A" strokeWidth={3} dot={{ r: 4 }} name={t('reports.session')} />
                                 </LineChart>
                             </ResponsiveContainer>
                         </CardContent>
@@ -229,18 +233,18 @@ const Reports = () => {
                 {/* Danışan Seans Sayıları */}
                 <Grid size={{ xs: 12, md: 6 }}>
                     <Card>
-                        <CardContent>
-                            <Typography variant="h6" sx={{ mb: 2 }}>👥 Danışan Seans Sayıları</Typography>
+                        <CardContent sx={{ p: { xs: 1.5, sm: 2, md: 3 }, '&:last-child': { pb: { xs: 1.5, sm: 2, md: 3 } } }}>
+                            <Typography variant="h6" sx={{ mb: 2, fontSize: { xs: '0.95rem', md: '1.25rem' } }}>{t('reports.clientSessions')}</Typography>
                             {clientSessionCounts.length === 0 ? (
-                                <Typography color="text.secondary" sx={{ textAlign: 'center', py: 4 }}>Henüz veri yok</Typography>
+                                <Typography color="text.secondary" sx={{ textAlign: 'center', py: 4 }}>{t('reports.noData')}</Typography>
                             ) : (
-                                <ResponsiveContainer width="100%" height={250}>
+                                <ResponsiveContainer width="100%" height={230}>
                                     <BarChart data={clientSessionCounts} layout="vertical">
                                         <CartesianGrid strokeDasharray="3 3" />
-                                        <XAxis type="number" allowDecimals={false} />
-                                        <YAxis dataKey="name" type="category" width={100} fontSize={12} />
+                                        <XAxis type="number" allowDecimals={false} fontSize={12} />
+                                        <YAxis dataKey="name" type="category" width={80} fontSize={11} />
                                         <Tooltip />
-                                        <Bar dataKey="sessions" fill="#26A69A" radius={[0, 6, 6, 0]} name="Seans" />
+                                        <Bar dataKey="sessions" fill="#26A69A" radius={[0, 6, 6, 0]} name={t('reports.session')} />
                                     </BarChart>
                                 </ResponsiveContainer>
                             )}
@@ -252,15 +256,15 @@ const Reports = () => {
                 {moodDistribution.length > 0 && (
                     <Grid size={{ xs: 12, md: 6 }}>
                         <Card>
-                            <CardContent>
-                                <Typography variant="h6" sx={{ mb: 2 }}>😊 Ruh Hali Dağılımı</Typography>
-                                <ResponsiveContainer width="100%" height={250}>
+                            <CardContent sx={{ p: { xs: 1.5, sm: 2, md: 3 }, '&:last-child': { pb: { xs: 1.5, sm: 2, md: 3 } } }}>
+                                <Typography variant="h6" sx={{ mb: 2, fontSize: { xs: '0.95rem', md: '1.25rem' } }}>{t('reports.moodDistribution')}</Typography>
+                                <ResponsiveContainer width="100%" height={230}>
                                     <PieChart>
                                         <Pie
                                             data={moodDistribution}
                                             cx="50%"
                                             cy="50%"
-                                            outerRadius={90}
+                                            outerRadius={80}
                                             paddingAngle={4}
                                             dataKey="value"
                                         >

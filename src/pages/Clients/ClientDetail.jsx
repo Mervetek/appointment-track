@@ -50,15 +50,13 @@ import {
     ResponsiveContainer,
 } from 'recharts';
 import { useApp } from '../../context/AppContext';
+import { useLanguage } from '../../context/LanguageContext';
 import {
     formatDate,
     formatDateTime,
     formatCurrency,
-    SESSION_STATUS_LABELS,
     SESSION_STATUS_COLORS,
-    PAYMENT_STATUS_LABELS,
     PAYMENT_STATUS_COLORS,
-    MOOD_OPTIONS,
     DEFAULT_SESSION_FEE,
 } from '../../utils/helpers';
 
@@ -78,6 +76,10 @@ const ClientDetail = () => {
     const { id } = useParams();
     const navigate = useNavigate();
     const { getClientById, getSessionsByClient, addSession, editSession, removeSession, showSnackbar } = useApp();
+    const { t, getSessionStatusLabels, getPaymentStatusLabels, getMoodOptions } = useLanguage();
+    const SESSION_STATUS_LABELS = getSessionStatusLabels();
+    const PAYMENT_STATUS_LABELS = getPaymentStatusLabels();
+    const MOOD_OPTIONS = getMoodOptions();
     const client = getClientById(id);
     const clientSessions = getSessionsByClient(id);
 
@@ -93,10 +95,10 @@ const ClientDetail = () => {
         return (
             <Box sx={{ textAlign: 'center', py: 8 }}>
                 <Typography variant="h5" color="text.secondary">
-                    Danışan bulunamadı
+                    {t('clientDetail.notFound')}
                 </Typography>
                 <Button sx={{ mt: 2 }} onClick={() => navigate('/clients')}>
-                    Danışan Listesine Dön
+                    {t('clientDetail.backToList')}
                 </Button>
             </Box>
         );
@@ -136,7 +138,7 @@ const ClientDetail = () => {
 
     const handleSaveSession = async () => {
         if (!sessionForm.date || !sessionForm.time) {
-            showSnackbar('Tarih ve saat zorunludur', 'error');
+            showSnackbar(t('clientDetail.dateTimeRequired'), 'error');
             return;
         }
         const dateTime = new Date(`${sessionForm.date}T${sessionForm.time}`).toISOString();
@@ -154,14 +156,14 @@ const ClientDetail = () => {
         try {
             if (editingSession) {
                 await editSession({ ...payload, id: editingSession.id });
-                showSnackbar('Seans güncellendi');
+                showSnackbar(t('clientDetail.sessionUpdated'));
             } else {
                 await addSession(payload);
-                showSnackbar('Yeni seans eklendi');
+                showSnackbar(t('clientDetail.sessionAdded'));
             }
             setSessionDialogOpen(false);
         } catch (err) {
-            showSnackbar('İşlem sırasında hata oluştu', 'error');
+            showSnackbar(t('clientDetail.sessionError'), 'error');
         } finally {
             setSaving(false);
         }
@@ -171,11 +173,11 @@ const ClientDetail = () => {
         setSaving(true);
         try {
             await removeSession(sessionToDelete.id);
-            showSnackbar('Seans silindi', 'warning');
+            showSnackbar(t('clientDetail.sessionDeleted'), 'warning');
             setDeleteSessionDialog(false);
             setSessionToDelete(null);
         } catch (err) {
-            showSnackbar('Silme sırasında hata oluştu', 'error');
+            showSnackbar(t('clientDetail.deleteError'), 'error');
         } finally {
             setSaving(false);
         }
@@ -184,24 +186,24 @@ const ClientDetail = () => {
     return (
         <Box>
             {/* Header */}
-            <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 3 }}>
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: { xs: 1, sm: 2 }, mb: { xs: 2, md: 3 }, flexWrap: 'wrap' }}>
                 <IconButton onClick={() => navigate('/clients')}>
                     <ArrowBackIcon />
                 </IconButton>
-                <Box sx={{ flex: 1 }}>
-                    <Typography variant="h4">
+                <Box sx={{ flex: 1, minWidth: 0 }}>
+                    <Typography variant="h4" noWrap sx={{ fontSize: { xs: '1.3rem', sm: '1.75rem', md: '2.125rem' } }}>
                         {client.firstName} {client.lastName}
                     </Typography>
                     <Typography variant="body2" color="text.secondary">
-                        Kayıt: {formatDate(client.createdAt)}
+                        {t('clientDetail.registered')}: {formatDate(client.createdAt)}
                     </Typography>
                 </Box>
-                <Chip label={client.isActive ? 'Aktif' : 'Pasif'} color={client.isActive ? 'success' : 'default'} />
+                <Chip label={client.isActive ? t('clients.active') : t('clients.passive')} color={client.isActive ? 'success' : 'default'} />
             </Box>
 
             {/* Bilgi Kartları */}
-            <Grid container spacing={3} sx={{ mb: 3 }}>
-                <Grid size={{ xs: 12, md: 4 }}>
+            <Grid container spacing={{ xs: 1.5, sm: 2, md: 3 }} sx={{ mb: { xs: 2, md: 3 } }}>
+                <Grid size={{ xs: 12, sm: 12, md: 4 }}>
                     <Card>
                         <CardContent>
                             <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 2 }}>
@@ -236,15 +238,15 @@ const ClientDetail = () => {
                     </Card>
                 </Grid>
 
-                <Grid size={{ xs: 12, md: 8 }}>
-                    <Grid container spacing={2}>
+                <Grid size={{ xs: 12, sm: 12, md: 8 }}>
+                    <Grid container spacing={{ xs: 1, sm: 2 }}>
                         <Grid size={{ xs: 6, sm: 3 }}>
                             <Card>
                                 <CardContent sx={{ textAlign: 'center' }}>
                                     <Typography variant="h4" color="primary" fontWeight={700}>
                                         {clientSessions.length}
                                     </Typography>
-                                    <Typography variant="caption" color="text.secondary">Toplam Seans</Typography>
+                                    <Typography variant="caption" color="text.secondary">{t('clientDetail.totalSessions')}</Typography>
                                 </CardContent>
                             </Card>
                         </Grid>
@@ -254,7 +256,7 @@ const ClientDetail = () => {
                                     <Typography variant="h4" color="success.main" fontWeight={700}>
                                         {completedSessions.length}
                                     </Typography>
-                                    <Typography variant="caption" color="text.secondary">Tamamlanan</Typography>
+                                    <Typography variant="caption" color="text.secondary">{t('clientDetail.completed')}</Typography>
                                 </CardContent>
                             </Card>
                         </Grid>
@@ -264,7 +266,7 @@ const ClientDetail = () => {
                                     <Typography variant="h5" color="success.main" fontWeight={700}>
                                         {formatCurrency(totalPaid)}
                                     </Typography>
-                                    <Typography variant="caption" color="text.secondary">Ödenen</Typography>
+                                    <Typography variant="caption" color="text.secondary">{t('clientDetail.paid')}</Typography>
                                 </CardContent>
                             </Card>
                         </Grid>
@@ -274,7 +276,7 @@ const ClientDetail = () => {
                                     <Typography variant="h5" color="warning.main" fontWeight={700}>
                                         {formatCurrency(totalPending)}
                                     </Typography>
-                                    <Typography variant="caption" color="text.secondary">Bekleyen</Typography>
+                                    <Typography variant="caption" color="text.secondary">{t('clientDetail.pending')}</Typography>
                                 </CardContent>
                             </Card>
                         </Grid>
@@ -283,11 +285,11 @@ const ClientDetail = () => {
                     {/* Tanı & Tedavi */}
                     <Card sx={{ mt: 2 }}>
                         <CardContent>
-                            <Typography variant="subtitle2" color="text.secondary" gutterBottom>Tanı</Typography>
+                            <Typography variant="subtitle2" color="text.secondary" gutterBottom>{t('clientDetail.diagnosis')}</Typography>
                             <Typography variant="body1" sx={{ mb: 2 }}>{client.diagnosis || '—'}</Typography>
-                            <Typography variant="subtitle2" color="text.secondary" gutterBottom>Tedavi Planı</Typography>
+                            <Typography variant="subtitle2" color="text.secondary" gutterBottom>{t('clientDetail.treatmentPlan')}</Typography>
                             <Typography variant="body1" sx={{ mb: 2 }}>{client.treatmentPlan || '—'}</Typography>
-                            <Typography variant="subtitle2" color="text.secondary" gutterBottom>Notlar</Typography>
+                            <Typography variant="subtitle2" color="text.secondary" gutterBottom>{t('clientDetail.notes')}</Typography>
                             <Typography variant="body1">{client.notes || '—'}</Typography>
                         </CardContent>
                     </Card>
@@ -296,23 +298,28 @@ const ClientDetail = () => {
 
             {/* Sekmeler */}
             <Card>
-                <Tabs value={tab} onChange={(e, v) => setTab(v)} sx={{ borderBottom: 1, borderColor: 'divider', px: 2 }}>
-                    <Tab label="Seans Geçmişi" />
-                    <Tab label="Ruh Hali Grafiği" />
+                <Tabs
+                    value={tab}
+                    onChange={(e, v) => setTab(v)}
+                    sx={{ borderBottom: 1, borderColor: 'divider', px: { xs: 1, sm: 2 } }}
+                    variant="fullWidth"
+                >
+                    <Tab label={t('clientDetail.sessionHistory')} />
+                    <Tab label={t('clientDetail.moodChart')} />
                 </Tabs>
 
                 {tab === 0 && (
                     <CardContent>
                         <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 2 }}>
-                            <Typography variant="h6">Seanslar</Typography>
+                            <Typography variant="h6">{t('clientDetail.sessions')}</Typography>
                             <Button startIcon={<AddIcon />} variant="contained" size="small" onClick={() => handleOpenSessionDialog()}>
-                                Yeni Seans
+                                {t('clientDetail.newSession')}
                             </Button>
                         </Box>
                         {clientSessions.length === 0 ? (
                             <Box sx={{ textAlign: 'center', py: 4 }}>
                                 <EventNoteIcon sx={{ fontSize: 48, color: 'text.disabled' }} />
-                                <Typography color="text.secondary">Henüz seans kaydı yok</Typography>
+                                <Typography color="text.secondary">{t('clientDetail.noSessions')}</Typography>
                             </Box>
                         ) : (
                             <List disablePadding>
@@ -325,12 +332,12 @@ const ClientDetail = () => {
                                                 sx={{ px: 1, py: 1.5, borderRadius: 2, '&:hover': { bgcolor: 'action.hover' } }}
                                                 secondaryAction={
                                                     <Box>
-                                                        <Tooltip title="Düzenle">
+                                                        <Tooltip title={t('clients.edit')}>
                                                             <IconButton size="small" onClick={() => handleOpenSessionDialog(session)}>
                                                                 <EditIcon fontSize="small" />
                                                             </IconButton>
                                                         </Tooltip>
-                                                        <Tooltip title="Sil">
+                                                        <Tooltip title={t('clients.delete')}>
                                                             <IconButton
                                                                 size="small"
                                                                 color="error"
@@ -380,7 +387,7 @@ const ClientDetail = () => {
                                                                 <Typography variant="body2" sx={{ mt: 0.5 }}>📝 {session.notes}</Typography>
                                                             )}
                                                             {session.homework && (
-                                                                <Typography variant="body2" sx={{ mt: 0.5 }}>📚 Ödev: {session.homework}</Typography>
+                                                                <Typography variant="body2" sx={{ mt: 0.5 }}>📚 {t('clientDetail.homework')}: {session.homework}</Typography>
                                                             )}
                                                         </Box>
                                                     }
@@ -395,24 +402,24 @@ const ClientDetail = () => {
                 )}
 
                 {tab === 1 && (
-                    <CardContent>
-                        <Typography variant="h6" sx={{ mb: 2 }}>Ruh Hali Takibi</Typography>
+                    <CardContent sx={{ p: { xs: 1.5, sm: 2, md: 3 }, '&:last-child': { pb: { xs: 1.5, sm: 2, md: 3 } } }}>
+                        <Typography variant="h6" sx={{ mb: 2, fontSize: { xs: '0.95rem', md: '1.25rem' } }}>{t('clientDetail.moodTracking')}</Typography>
                         {moodData.length < 2 ? (
                             <Box sx={{ textAlign: 'center', py: 4 }}>
                                 <Typography color="text.secondary">
-                                    Grafik için en az 2 seans mood verisi gerekli
+                                    {t('clientDetail.moodMinData')}
                                 </Typography>
                             </Box>
                         ) : (
-                            <ResponsiveContainer width="100%" height={300}>
+                            <ResponsiveContainer width="100%" height={260}>
                                 <LineChart data={moodData}>
                                     <CartesianGrid strokeDasharray="3 3" />
-                                    <XAxis dataKey="name" />
-                                    <YAxis domain={[1, 5]} ticks={[1, 2, 3, 4, 5]} />
+                                    <XAxis dataKey="name" fontSize={12} />
+                                    <YAxis domain={[1, 5]} ticks={[1, 2, 3, 4, 5]} fontSize={12} />
                                     <RechartsTooltip
                                         formatter={(value) => {
                                             const m = MOOD_OPTIONS.find((o) => o.value === value);
-                                            return [`${m?.emoji} ${m?.label}`, 'Ruh Hali'];
+                                            return [`${m?.emoji} ${m?.label}`, t('clientDetail.moodLabel')];
                                         }}
                                         labelFormatter={(label, payload) => payload?.[0]?.payload?.date || label}
                                     />
@@ -432,13 +439,15 @@ const ClientDetail = () => {
             </Card>
 
             {/* Seans Ekleme/Düzenleme Dialog */}
-            <Dialog open={sessionDialogOpen} onClose={() => setSessionDialogOpen(false)} maxWidth="sm" fullWidth>
-                <DialogTitle>{editingSession ? 'Seans Düzenle' : 'Yeni Seans Ekle'}</DialogTitle>
+            <Dialog open={sessionDialogOpen} onClose={() => setSessionDialogOpen(false)} maxWidth="sm" fullWidth
+                sx={{ '& .MuiDialog-paper': { mx: { xs: 1, sm: 2 }, width: { xs: 'calc(100% - 16px)', sm: 'calc(100% - 32px)' } } }}
+            >
+                <DialogTitle>{editingSession ? t('clientDetail.editSession') : t('clientDetail.addSession')}</DialogTitle>
                 <DialogContent>
                     <Grid container spacing={2} sx={{ mt: 1 }}>
                         <Grid size={{ xs: 6 }}>
                             <TextField
-                                label="Tarih"
+                                label={t('clientDetail.date')}
                                 type="date"
                                 fullWidth
                                 InputLabelProps={{ shrink: true }}
@@ -448,7 +457,7 @@ const ClientDetail = () => {
                         </Grid>
                         <Grid size={{ xs: 6 }}>
                             <TextField
-                                label="Saat"
+                                label={t('clientDetail.time')}
                                 type="time"
                                 fullWidth
                                 InputLabelProps={{ shrink: true }}
@@ -458,7 +467,7 @@ const ClientDetail = () => {
                         </Grid>
                         <Grid size={{ xs: 6 }}>
                             <TextField
-                                label="Süre (dk)"
+                                label={t('clientDetail.duration')}
                                 type="number"
                                 fullWidth
                                 value={sessionForm.duration}
@@ -467,7 +476,7 @@ const ClientDetail = () => {
                         </Grid>
                         <Grid size={{ xs: 6 }}>
                             <TextField
-                                label="Ücret (₺)"
+                                label={t('clientDetail.fee')}
                                 type="number"
                                 fullWidth
                                 value={sessionForm.fee}
@@ -476,42 +485,42 @@ const ClientDetail = () => {
                         </Grid>
                         <Grid size={{ xs: 6 }}>
                             <FormControl fullWidth>
-                                <InputLabel>Durum</InputLabel>
+                                <InputLabel>{t('clientDetail.sessionStatus')}</InputLabel>
                                 <Select
                                     value={sessionForm.status}
-                                    label="Durum"
+                                    label={t('clientDetail.sessionStatus')}
                                     onChange={(e) => setSessionForm({ ...sessionForm, status: e.target.value })}
                                 >
-                                    <MenuItem value="scheduled">Planlandı</MenuItem>
-                                    <MenuItem value="completed">Tamamlandı</MenuItem>
-                                    <MenuItem value="cancelled">İptal Edildi</MenuItem>
-                                    <MenuItem value="no_show">Gelmedi</MenuItem>
+                                    <MenuItem value="scheduled">{SESSION_STATUS_LABELS.scheduled}</MenuItem>
+                                    <MenuItem value="completed">{SESSION_STATUS_LABELS.completed}</MenuItem>
+                                    <MenuItem value="cancelled">{SESSION_STATUS_LABELS.cancelled}</MenuItem>
+                                    <MenuItem value="no_show">{SESSION_STATUS_LABELS.no_show}</MenuItem>
                                 </Select>
                             </FormControl>
                         </Grid>
                         <Grid size={{ xs: 6 }}>
                             <FormControl fullWidth>
-                                <InputLabel>Ödeme Durumu</InputLabel>
+                                <InputLabel>{t('clientDetail.paymentStatus')}</InputLabel>
                                 <Select
                                     value={sessionForm.paymentStatus}
-                                    label="Ödeme Durumu"
+                                    label={t('clientDetail.paymentStatus')}
                                     onChange={(e) => setSessionForm({ ...sessionForm, paymentStatus: e.target.value })}
                                 >
-                                    <MenuItem value="pending">Bekliyor</MenuItem>
-                                    <MenuItem value="paid">Ödendi</MenuItem>
-                                    <MenuItem value="partial">Kısmi</MenuItem>
+                                    <MenuItem value="pending">{PAYMENT_STATUS_LABELS.pending}</MenuItem>
+                                    <MenuItem value="paid">{PAYMENT_STATUS_LABELS.paid}</MenuItem>
+                                    <MenuItem value="partial">{PAYMENT_STATUS_LABELS.partial}</MenuItem>
                                 </Select>
                             </FormControl>
                         </Grid>
                         <Grid size={{ xs: 12 }}>
                             <FormControl fullWidth>
-                                <InputLabel>Ruh Hali</InputLabel>
+                                <InputLabel>{t('clientDetail.mood')}</InputLabel>
                                 <Select
                                     value={sessionForm.mood}
-                                    label="Ruh Hali"
+                                    label={t('clientDetail.mood')}
                                     onChange={(e) => setSessionForm({ ...sessionForm, mood: e.target.value })}
                                 >
-                                    <MenuItem value="">Seçilmedi</MenuItem>
+                                    <MenuItem value="">{t('clientDetail.moodNone')}</MenuItem>
                                     {MOOD_OPTIONS.map((m) => (
                                         <MenuItem key={m.value} value={m.value}>
                                             {m.emoji} {m.label}
@@ -522,7 +531,7 @@ const ClientDetail = () => {
                         </Grid>
                         <Grid size={{ xs: 12 }}>
                             <TextField
-                                label="Seans Notları"
+                                label={t('clientDetail.sessionNotes')}
                                 fullWidth
                                 multiline
                                 rows={3}
@@ -532,7 +541,7 @@ const ClientDetail = () => {
                         </Grid>
                         <Grid size={{ xs: 12 }}>
                             <TextField
-                                label="Ev Ödevi"
+                                label={t('clientDetail.homeworkLabel')}
                                 fullWidth
                                 multiline
                                 rows={2}
@@ -543,23 +552,23 @@ const ClientDetail = () => {
                     </Grid>
                 </DialogContent>
                 <DialogActions sx={{ p: 2.5 }}>
-                    <Button onClick={() => setSessionDialogOpen(false)} disabled={saving}>İptal</Button>
+                    <Button onClick={() => setSessionDialogOpen(false)} disabled={saving}>{t('clientDetail.cancel')}</Button>
                     <Button variant="contained" onClick={handleSaveSession} disabled={saving}>
-                        {saving ? 'Kaydediliyor...' : editingSession ? 'Güncelle' : 'Kaydet'}
+                        {saving ? t('clientDetail.saving') : editingSession ? t('clientDetail.update') : t('clientDetail.save')}
                     </Button>
                 </DialogActions>
             </Dialog>
 
             {/* Seans Silme Dialog */}
             <Dialog open={deleteSessionDialog} onClose={() => setDeleteSessionDialog(false)}>
-                <DialogTitle>Seansı Sil</DialogTitle>
+                <DialogTitle>{t('clientDetail.deleteSession')}</DialogTitle>
                 <DialogContent>
-                    <Typography>Bu seans kaydını silmek istediğinize emin misiniz?</Typography>
+                    <Typography>{t('clientDetail.deleteSessionConfirm')}</Typography>
                 </DialogContent>
                 <DialogActions sx={{ p: 2 }}>
-                    <Button onClick={() => setDeleteSessionDialog(false)} disabled={saving}>İptal</Button>
+                    <Button onClick={() => setDeleteSessionDialog(false)} disabled={saving}>{t('clientDetail.cancel')}</Button>
                     <Button variant="contained" color="error" onClick={handleDeleteSession} disabled={saving}>
-                        {saving ? 'Siliniyor...' : 'Sil'}
+                        {saving ? t('clientDetail.deleting') : t('clients.delete')}
                     </Button>
                 </DialogActions>
             </Dialog>

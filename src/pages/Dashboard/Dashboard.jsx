@@ -29,14 +29,12 @@ import {
     Warning as WarningIcon,
 } from '@mui/icons-material';
 import { useApp } from '../../context/AppContext';
+import { useLanguage } from '../../context/LanguageContext';
 import {
     formatTime,
     formatCurrency,
-    SESSION_STATUS_LABELS,
     SESSION_STATUS_COLORS,
-    PAYMENT_STATUS_LABELS,
     PAYMENT_STATUS_COLORS,
-    MOOD_OPTIONS,
 } from '../../utils/helpers';
 
 const StatCard = ({ icon, title, value, subtitle, color, onClick }) => (
@@ -50,22 +48,22 @@ const StatCard = ({ icon, title, value, subtitle, color, onClick }) => (
         }}
         onClick={onClick}
     >
-        <CardContent sx={{ p: 3 }}>
+        <CardContent sx={{ p: { xs: 1.5, sm: 2, md: 3 }, '&:last-child': { pb: { xs: 1.5, sm: 2, md: 3 } } }}>
             <Box sx={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between' }}>
-                <Box>
-                    <Typography variant="body2" color="text.secondary" gutterBottom>
+                <Box sx={{ minWidth: 0, flex: 1 }}>
+                    <Typography variant="body2" color="text.secondary" gutterBottom noWrap sx={{ fontSize: { xs: '0.7rem', sm: '0.8rem', md: '0.875rem' } }}>
                         {title}
                     </Typography>
-                    <Typography variant="h4" fontWeight={700}>
+                    <Typography variant="h4" fontWeight={700} sx={{ fontSize: { xs: '1.25rem', sm: '1.5rem', md: '2.125rem' } }}>
                         {value}
                     </Typography>
                     {subtitle && (
-                        <Typography variant="caption" color="text.secondary" sx={{ mt: 0.5 }}>
+                        <Typography variant="caption" color="text.secondary" noWrap sx={{ mt: 0.5, fontSize: { xs: '0.65rem', sm: '0.75rem' } }}>
                             {subtitle}
                         </Typography>
                     )}
                 </Box>
-                <Avatar sx={{ bgcolor: `${color}15`, color: color, width: 52, height: 52 }}>
+                <Avatar sx={{ bgcolor: `${color}15`, color: color, width: { xs: 36, sm: 44, md: 52 }, height: { xs: 36, sm: 44, md: 52 }, ml: 1 }}>
                     {icon}
                 </Avatar>
             </Box>
@@ -85,11 +83,13 @@ const Dashboard = () => {
         getPendingPayments,
         getClientById,
     } = useApp();
+    const { t, language, getSessionStatusLabels } = useLanguage();
+    const SESSION_STATUS_LABELS = getSessionStatusLabels();
 
     if (loading) {
         return (
             <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '50vh' }}>
-                <Typography variant="h6" color="text.secondary">Veriler yükleniyor...</Typography>
+                <Typography variant="h6" color="text.secondary">{t('dashboard.loading')}</Typography>
             </Box>
         );
     }
@@ -108,51 +108,51 @@ const Dashboard = () => {
     return (
         <Box>
             {/* Header */}
-            <Box sx={{ mb: 4 }}>
-                <Typography variant="h4" gutterBottom>
-                    Hoş Geldiniz 👋
+            <Box sx={{ mb: { xs: 2, sm: 3, md: 4 } }}>
+                <Typography variant="h4" gutterBottom sx={{ fontSize: { xs: '1.5rem', sm: '1.75rem', md: '2.125rem' } }}>
+                    {t('dashboard.welcome')}
                 </Typography>
                 <Typography variant="body1" color="text.secondary">
-                    Bugünkü randevularınız ve genel durumunuz
+                    {t('dashboard.subtitle')}
                 </Typography>
             </Box>
 
             {/* İstatistik Kartları */}
-            <Grid container spacing={3} sx={{ mb: 4 }}>
-                <Grid size={{ xs: 12, sm: 6, md: 3 }}>
+            <Grid container spacing={{ xs: 1.5, sm: 2, md: 3 }} sx={{ mb: { xs: 2, sm: 3, md: 4 } }}>
+                <Grid size={{ xs: 6, sm: 6, md: 3 }}>
                     <StatCard
                         icon={<CalendarIcon />}
-                        title="Bugünkü Seanslar"
+                        title={t('dashboard.todaySessions')}
                         value={todaySessions.length}
-                        subtitle={`${todaySessions.filter((s) => s.status === 'scheduled').length} planlandı`}
+                        subtitle={`${todaySessions.filter((s) => s.status === 'scheduled').length} ${t('dashboard.planned')}`}
                         color="#5C6BC0"
                         onClick={() => navigate('/calendar')}
                     />
                 </Grid>
-                <Grid size={{ xs: 12, sm: 6, md: 3 }}>
+                <Grid size={{ xs: 6, sm: 6, md: 3 }}>
                     <StatCard
                         icon={<PeopleIcon />}
-                        title="Aktif Danışanlar"
+                        title={t('dashboard.activeClients')}
                         value={activeClients.length}
-                        subtitle={`${clients.length} toplam`}
+                        subtitle={`${clients.length} ${t('dashboard.total')}`}
                         color="#26A69A"
                         onClick={() => navigate('/clients')}
                     />
                 </Grid>
-                <Grid size={{ xs: 12, sm: 6, md: 3 }}>
+                <Grid size={{ xs: 6, sm: 6, md: 3 }}>
                     <StatCard
                         icon={<PaymentsIcon />}
-                        title="Toplam Gelir"
+                        title={t('dashboard.totalRevenue')}
                         value={formatCurrency(totalRevenue)}
-                        subtitle={`${completedThisMonth.length} seans bu ay`}
+                        subtitle={`${completedThisMonth.length} ${t('dashboard.sessionsThisMonth')}`}
                         color="#43a047"
                         onClick={() => navigate('/payments')}
                     />
                 </Grid>
-                <Grid size={{ xs: 12, sm: 6, md: 3 }}>
+                <Grid size={{ xs: 6, sm: 6, md: 3 }}>
                     <StatCard
                         icon={<WarningIcon />}
-                        title="Bekleyen Ödemeler"
+                        title={t('dashboard.pendingPayments')}
                         value={pendingPayments.length}
                         subtitle={formatCurrency(pendingPayments.reduce((sum, s) => sum + (s.fee || 0), 0))}
                         color="#fb8c00"
@@ -161,21 +161,21 @@ const Dashboard = () => {
                 </Grid>
             </Grid>
 
-            <Grid container spacing={3}>
+            <Grid container spacing={{ xs: 1.5, sm: 2, md: 3 }}>
                 {/* Bugünkü Seanslar */}
                 <Grid size={{ xs: 12, md: 7 }}>
                     <Card>
                         <CardContent>
                             <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
-                                <Typography variant="h6">📅 Bugünkü Seanslar</Typography>
+                                <Typography variant="h6">{t('dashboard.todaySessionsTitle')}</Typography>
                                 <Button size="small" onClick={() => navigate('/calendar')} endIcon={<ArrowForwardIcon />}>
-                                    Takvim
+                                    {t('dashboard.calendar')}
                                 </Button>
                             </Box>
                             {todaySessions.length === 0 ? (
                                 <Box sx={{ textAlign: 'center', py: 4 }}>
                                     <EventAvailableIcon sx={{ fontSize: 48, color: 'text.disabled', mb: 1 }} />
-                                    <Typography color="text.secondary">Bugün randevu yok</Typography>
+                                    <Typography color="text.secondary">{t('dashboard.noAppointmentToday')}</Typography>
                                 </Box>
                             ) : (
                                 <List disablePadding>
@@ -199,11 +199,11 @@ const Dashboard = () => {
                                                         </Avatar>
                                                     </ListItemAvatar>
                                                     <ListItemText
-                                                        primary={client ? `${client.firstName} ${client.lastName}` : 'Bilinmeyen'}
+                                                        primary={client ? `${client.firstName} ${client.lastName}` : t('dashboard.unknown')}
                                                         secondary={
                                                             <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5, mt: 0.5 }}>
                                                                 <AccessTimeIcon sx={{ fontSize: 14 }} />
-                                                                {formatTime(session.date)} • {session.duration} dk
+                                                                {formatTime(session.date)} • {session.duration} {t('dashboard.min')}
                                                             </Box>
                                                         }
                                                     />
@@ -233,19 +233,19 @@ const Dashboard = () => {
                     <Card>
                         <CardContent>
                             <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
-                                <Typography variant="h6">⏰ Yaklaşan Randevular</Typography>
+                                <Typography variant="h6">{t('dashboard.upcomingTitle')}</Typography>
                             </Box>
                             {upcomingSessions.length === 0 ? (
                                 <Box sx={{ textAlign: 'center', py: 4 }}>
                                     <CalendarIcon sx={{ fontSize: 48, color: 'text.disabled', mb: 1 }} />
-                                    <Typography color="text.secondary">Yaklaşan randevu yok</Typography>
+                                    <Typography color="text.secondary">{t('dashboard.noUpcoming')}</Typography>
                                 </Box>
                             ) : (
                                 <List disablePadding>
                                     {upcomingSessions.map((session, idx) => {
                                         const client = getClientById(session.clientId);
                                         const sessionDate = new Date(session.date);
-                                        const dayStr = sessionDate.toLocaleDateString('tr-TR', {
+                                        const dayStr = sessionDate.toLocaleDateString(language === 'tr' ? 'tr-TR' : 'en-US', {
                                             weekday: 'short',
                                             day: 'numeric',
                                             month: 'short',
@@ -268,7 +268,7 @@ const Dashboard = () => {
                                                         </Avatar>
                                                     </ListItemAvatar>
                                                     <ListItemText
-                                                        primary={client ? `${client.firstName} ${client.lastName}` : 'Bilinmeyen'}
+                                                        primary={client ? `${client.firstName} ${client.lastName}` : t('dashboard.unknown')}
                                                         secondary={`${dayStr} • ${formatTime(session.date)}`}
                                                         primaryTypographyProps={{ fontSize: '0.9rem' }}
                                                     />

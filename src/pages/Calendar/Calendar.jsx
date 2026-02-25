@@ -18,6 +18,8 @@ import {
     InputLabel,
     Select,
     Avatar,
+    useMediaQuery,
+    useTheme,
 } from '@mui/material';
 import { Add as AddIcon } from '@mui/icons-material';
 import FullCalendar from '@fullcalendar/react';
@@ -25,11 +27,9 @@ import dayGridPlugin from '@fullcalendar/daygrid';
 import timeGridPlugin from '@fullcalendar/timegrid';
 import interactionPlugin from '@fullcalendar/interaction';
 import { useApp } from '../../context/AppContext';
+import { useLanguage } from '../../context/LanguageContext';
 import {
     SESSION_STATUS_COLORS,
-    SESSION_STATUS_LABELS,
-    PAYMENT_STATUS_LABELS,
-    MOOD_OPTIONS,
     DEFAULT_SESSION_FEE,
     formatDateTime,
     formatCurrency,
@@ -38,6 +38,11 @@ import {
 const Calendar = () => {
     const navigate = useNavigate();
     const { sessions, clients, addSession, getClientById, showSnackbar } = useApp();
+    const { t, language, getSessionStatusLabels, getPaymentStatusLabels } = useLanguage();
+    const theme = useTheme();
+    const isSmall = useMediaQuery(theme.breakpoints.down('md'));
+    const SESSION_STATUS_LABELS = getSessionStatusLabels();
+    const PAYMENT_STATUS_LABELS = getPaymentStatusLabels();
     const [selectedEvent, setSelectedEvent] = useState(null);
     const [detailDialogOpen, setDetailDialogOpen] = useState(false);
     const [addDialogOpen, setAddDialogOpen] = useState(false);
@@ -59,7 +64,7 @@ const Calendar = () => {
                 const client = getClientById(s.clientId);
                 return {
                     id: s.id,
-                    title: client ? `${client.firstName} ${client.lastName}` : 'Bilinmeyen',
+                    title: client ? `${client.firstName} ${client.lastName}` : t('calendar.unknown'),
                     start: s.date,
                     end: new Date(new Date(s.date).getTime() + s.duration * 60000).toISOString(),
                     backgroundColor: SESSION_STATUS_COLORS[s.status] || '#1976d2',
@@ -86,7 +91,7 @@ const Calendar = () => {
 
     const handleAddSession = async () => {
         if (!newSession.clientId || !newSession.date || !newSession.time) {
-            showSnackbar('Danışan, tarih ve saat zorunludur', 'error');
+            showSnackbar(t('calendar.required'), 'error');
             return;
         }
         setSaving(true);
@@ -100,7 +105,7 @@ const Calendar = () => {
                 mood: null,
                 homework: '',
             });
-            showSnackbar('Randevu eklendi');
+            showSnackbar(t('calendar.added'));
             setAddDialogOpen(false);
             setNewSession({
                 clientId: '',
@@ -113,7 +118,7 @@ const Calendar = () => {
                 notes: '',
             });
         } catch (err) {
-            showSnackbar('Randevu eklenirken hata oluştu', 'error');
+            showSnackbar(t('calendar.error'), 'error');
         } finally {
             setSaving(false);
         }
@@ -121,15 +126,15 @@ const Calendar = () => {
 
     return (
         <Box>
-            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3, flexWrap: 'wrap', gap: 2 }}>
+            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: { xs: 2, md: 3 }, flexWrap: 'wrap', gap: 2 }}>
                 <Box>
-                    <Typography variant="h4">Takvim</Typography>
+                    <Typography variant="h4" sx={{ fontSize: { xs: '1.5rem', sm: '1.75rem', md: '2.125rem' } }}>{t('calendar.title')}</Typography>
                     <Typography variant="body2" color="text.secondary">
-                        Randevularınızı görüntüleyin ve yönetin
+                        {t('calendar.subtitle')}
                     </Typography>
                 </Box>
                 <Button variant="contained" startIcon={<AddIcon />} onClick={() => setAddDialogOpen(true)}>
-                    Yeni Randevu
+                    {t('calendar.newAppointment')}
                 </Button>
             </Box>
 
@@ -137,13 +142,19 @@ const Calendar = () => {
                 <CardContent>
                     <FullCalendar
                         plugins={[dayGridPlugin, timeGridPlugin, interactionPlugin]}
-                        initialView="timeGridWeek"
-                        headerToolbar={{
-                            left: 'prev,next today',
-                            center: 'title',
-                            right: 'dayGridMonth,timeGridWeek,timeGridDay',
-                        }}
-                        locale="tr"
+                        initialView={isSmall ? 'timeGridDay' : 'timeGridWeek'}
+                        headerToolbar={isSmall
+                            ? {
+                                left: 'prev,next',
+                                center: 'title',
+                                right: 'timeGridDay,timeGridWeek',
+                            }
+                            : {
+                                left: 'prev,next today',
+                                center: 'title',
+                                right: 'dayGridMonth,timeGridWeek,timeGridDay',
+                            }}
+                        locale={language === 'tr' ? 'tr' : 'en'}
                         events={events}
                         eventClick={handleEventClick}
                         dateClick={handleDateClick}
@@ -154,10 +165,10 @@ const Calendar = () => {
                         slotDuration="00:30:00"
                         nowIndicator={true}
                         buttonText={{
-                            today: 'Bugün',
-                            month: 'Ay',
-                            week: 'Hafta',
-                            day: 'Gün',
+                            today: t('calendar.today'),
+                            month: t('calendar.month'),
+                            week: t('calendar.week'),
+                            day: t('calendar.day'),
                         }}
                         eventTimeFormat={{
                             hour: '2-digit',
@@ -170,7 +181,7 @@ const Calendar = () => {
 
             {/* Seans Detay Dialog */}
             <Dialog open={detailDialogOpen} onClose={() => setDetailDialogOpen(false)} maxWidth="sm" fullWidth>
-                <DialogTitle>Seans Detayı</DialogTitle>
+                <DialogTitle>{t('calendar.sessionDetail')}</DialogTitle>
                 <DialogContent>
                     {selectedEvent && (
                         <Box sx={{ pt: 1 }}>
@@ -182,7 +193,7 @@ const Calendar = () => {
                                     <Typography variant="h6">
                                         {selectedEvent.client
                                             ? `${selectedEvent.client.firstName} ${selectedEvent.client.lastName}`
-                                            : 'Bilinmeyen'}
+                                            : t('calendar.unknown')}
                                     </Typography>
                                     <Typography variant="body2" color="text.secondary">
                                         {formatDateTime(selectedEvent.session.date)}
@@ -191,15 +202,15 @@ const Calendar = () => {
                             </Box>
                             <Grid container spacing={2}>
                                 <Grid size={{ xs: 6 }}>
-                                    <Typography variant="caption" color="text.secondary">Süre</Typography>
-                                    <Typography>{selectedEvent.session.duration} dakika</Typography>
+                                    <Typography variant="caption" color="text.secondary">{t('calendar.duration')}</Typography>
+                                    <Typography>{selectedEvent.session.duration} {t('calendar.minutes')}</Typography>
                                 </Grid>
                                 <Grid size={{ xs: 6 }}>
-                                    <Typography variant="caption" color="text.secondary">Ücret</Typography>
+                                    <Typography variant="caption" color="text.secondary">{t('calendar.fee')}</Typography>
                                     <Typography>{formatCurrency(selectedEvent.session.fee)}</Typography>
                                 </Grid>
                                 <Grid size={{ xs: 6 }}>
-                                    <Typography variant="caption" color="text.secondary">Durum</Typography>
+                                    <Typography variant="caption" color="text.secondary">{t('calendar.status')}</Typography>
                                     <Box>
                                         <Chip
                                             label={SESSION_STATUS_LABELS[selectedEvent.session.status]}
@@ -213,14 +224,14 @@ const Calendar = () => {
                                     </Box>
                                 </Grid>
                                 <Grid size={{ xs: 6 }}>
-                                    <Typography variant="caption" color="text.secondary">Ödeme</Typography>
+                                    <Typography variant="caption" color="text.secondary">{t('calendar.payment')}</Typography>
                                     <Box>
                                         <Chip label={PAYMENT_STATUS_LABELS[selectedEvent.session.paymentStatus]} size="small" />
                                     </Box>
                                 </Grid>
                                 {selectedEvent.session.notes && (
                                     <Grid size={{ xs: 12 }}>
-                                        <Typography variant="caption" color="text.secondary">Notlar</Typography>
+                                        <Typography variant="caption" color="text.secondary">{t('calendar.notes')}</Typography>
                                         <Typography variant="body2">{selectedEvent.session.notes}</Typography>
                                     </Grid>
                                 )}
@@ -229,7 +240,7 @@ const Calendar = () => {
                     )}
                 </DialogContent>
                 <DialogActions sx={{ p: 2 }}>
-                    <Button onClick={() => setDetailDialogOpen(false)}>Kapat</Button>
+                    <Button onClick={() => setDetailDialogOpen(false)}>{t('calendar.close')}</Button>
                     {selectedEvent?.client && (
                         <Button
                             variant="contained"
@@ -238,7 +249,7 @@ const Calendar = () => {
                                 navigate(`/clients/${selectedEvent.client.id}`);
                             }}
                         >
-                            Danışana Git
+                            {t('calendar.goToClient')}
                         </Button>
                     )}
                 </DialogActions>
@@ -246,15 +257,15 @@ const Calendar = () => {
 
             {/* Yeni Randevu Dialog */}
             <Dialog open={addDialogOpen} onClose={() => setAddDialogOpen(false)} maxWidth="sm" fullWidth>
-                <DialogTitle>Yeni Randevu</DialogTitle>
+                <DialogTitle>{t('calendar.newAppointmentTitle')}</DialogTitle>
                 <DialogContent>
                     <Grid container spacing={2} sx={{ mt: 1 }}>
                         <Grid size={{ xs: 12 }}>
                             <FormControl fullWidth>
-                                <InputLabel>Danışan</InputLabel>
+                                <InputLabel>{t('calendar.client')}</InputLabel>
                                 <Select
                                     value={newSession.clientId}
-                                    label="Danışan"
+                                    label={t('calendar.client')}
                                     onChange={(e) => setNewSession({ ...newSession, clientId: e.target.value })}
                                 >
                                     {clients
@@ -269,7 +280,7 @@ const Calendar = () => {
                         </Grid>
                         <Grid size={{ xs: 6 }}>
                             <TextField
-                                label="Tarih"
+                                label={t('calendar.date')}
                                 type="date"
                                 fullWidth
                                 InputLabelProps={{ shrink: true }}
@@ -279,7 +290,7 @@ const Calendar = () => {
                         </Grid>
                         <Grid size={{ xs: 6 }}>
                             <TextField
-                                label="Saat"
+                                label={t('calendar.time')}
                                 type="time"
                                 fullWidth
                                 InputLabelProps={{ shrink: true }}
@@ -289,7 +300,7 @@ const Calendar = () => {
                         </Grid>
                         <Grid size={{ xs: 6 }}>
                             <TextField
-                                label="Süre (dk)"
+                                label={t('calendar.durationMin')}
                                 type="number"
                                 fullWidth
                                 value={newSession.duration}
@@ -298,7 +309,7 @@ const Calendar = () => {
                         </Grid>
                         <Grid size={{ xs: 6 }}>
                             <TextField
-                                label="Ücret (₺)"
+                                label={t('calendar.feeLabel')}
                                 type="number"
                                 fullWidth
                                 value={newSession.fee}
@@ -307,7 +318,7 @@ const Calendar = () => {
                         </Grid>
                         <Grid size={{ xs: 12 }}>
                             <TextField
-                                label="Notlar"
+                                label={t('calendar.notes')}
                                 fullWidth
                                 multiline
                                 rows={2}
@@ -318,9 +329,9 @@ const Calendar = () => {
                     </Grid>
                 </DialogContent>
                 <DialogActions sx={{ p: 2.5 }}>
-                    <Button onClick={() => setAddDialogOpen(false)} disabled={saving}>İptal</Button>
+                    <Button onClick={() => setAddDialogOpen(false)} disabled={saving}>{t('calendar.cancel')}</Button>
                     <Button variant="contained" onClick={handleAddSession} disabled={saving}>
-                        {saving ? 'Kaydediliyor...' : 'Kaydet'}
+                        {saving ? t('calendar.saving') : t('calendar.save')}
                     </Button>
                 </DialogActions>
             </Dialog>

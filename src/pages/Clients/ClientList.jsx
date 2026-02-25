@@ -42,6 +42,7 @@ import {
     ViewModule as CardViewIcon,
 } from '@mui/icons-material';
 import { useApp } from '../../context/AppContext';
+import { useLanguage } from '../../context/LanguageContext';
 import { formatDate } from '../../utils/helpers';
 
 const emptyClient = {
@@ -60,6 +61,7 @@ const emptyClient = {
 const ClientList = () => {
     const navigate = useNavigate();
     const { clients, sessions, loading, addClient, editClient, removeClient, showSnackbar, getSessionsByClient } = useApp();
+    const { t } = useLanguage();
     const [search, setSearch] = useState('');
     const [dialogOpen, setDialogOpen] = useState(false);
     const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
@@ -99,21 +101,21 @@ const ClientList = () => {
 
     const handleSave = async () => {
         if (!formData.firstName.trim() || !formData.lastName.trim()) {
-            showSnackbar('Ad ve soyad zorunludur', 'error');
+            showSnackbar(t('clients.nameRequired'), 'error');
             return;
         }
         setSaving(true);
         try {
             if (editingClient) {
                 await editClient({ ...formData, id: editingClient.id });
-                showSnackbar('Danışan güncellendi');
+                showSnackbar(t('clients.updated'));
             } else {
                 await addClient(formData);
-                showSnackbar('Yeni danışan eklendi');
+                showSnackbar(t('clients.added'));
             }
             handleCloseDialog();
         } catch (err) {
-            showSnackbar('İşlem sırasında hata oluştu', 'error');
+            showSnackbar(t('clients.error'), 'error');
         } finally {
             setSaving(false);
         }
@@ -128,11 +130,11 @@ const ClientList = () => {
         setSaving(true);
         try {
             await removeClient(editingClient.id);
-            showSnackbar('Danışan silindi', 'warning');
+            showSnackbar(t('clients.deleted'), 'warning');
             setDeleteDialogOpen(false);
             setEditingClient(null);
         } catch (err) {
-            showSnackbar('Silme sırasında hata oluştu', 'error');
+            showSnackbar(t('clients.deleteError'), 'error');
         } finally {
             setSaving(false);
         }
@@ -143,15 +145,15 @@ const ClientList = () => {
     return (
         <Box>
             {/* Header */}
-            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3, flexWrap: 'wrap', gap: 2 }}>
+            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: { xs: 2, md: 3 }, flexWrap: 'wrap', gap: 2 }}>
                 <Box>
-                    <Typography variant="h4">Danışanlar</Typography>
+                    <Typography variant="h4" sx={{ fontSize: { xs: '1.5rem', sm: '1.75rem', md: '2.125rem' } }}>{t('clients.title')}</Typography>
                     <Typography variant="body2" color="text.secondary">
-                        {clients.length} danışan kayıtlı
+                        {t('clients.count', { count: clients.length })}
                     </Typography>
                 </Box>
                 <Button variant="contained" startIcon={<AddIcon />} onClick={() => handleOpenDialog()} size="large">
-                    Yeni Danışan
+                    {t('clients.new')}
                 </Button>
             </Box>
 
@@ -160,7 +162,7 @@ const ClientList = () => {
                 <CardContent sx={{ py: 2, '&:last-child': { pb: 2 } }}>
                     <Box sx={{ display: 'flex', gap: 2, alignItems: 'center' }}>
                         <TextField
-                            placeholder="Danışan ara (ad, telefon, tanı...)"
+                            placeholder={t('clients.search')}
                             value={search}
                             onChange={(e) => setSearch(e.target.value)}
                             size="small"
@@ -193,16 +195,16 @@ const ClientList = () => {
             {/* Tablo Görünümü */}
             {viewMode === 'table' ? (
                 <Card>
-                    <TableContainer>
-                        <Table>
+                    <TableContainer sx={{ overflowX: 'auto' }}>
+                        <Table sx={{ minWidth: 650 }}>
                             <TableHead>
                                 <TableRow>
-                                    <TableCell>Danışan</TableCell>
-                                    <TableCell>Telefon</TableCell>
-                                    <TableCell>Tanı</TableCell>
-                                    <TableCell align="center">Seans</TableCell>
-                                    <TableCell align="center">Durum</TableCell>
-                                    <TableCell align="right">İşlemler</TableCell>
+                                    <TableCell>{t('clients.name')}</TableCell>
+                                    <TableCell>{t('clients.phone')}</TableCell>
+                                    <TableCell>{t('clients.diagnosis')}</TableCell>
+                                    <TableCell align="center">{t('clients.session')}</TableCell>
+                                    <TableCell align="center">{t('clients.status')}</TableCell>
+                                    <TableCell align="right">{t('clients.actions')}</TableCell>
                                 </TableRow>
                             </TableHead>
                             <TableBody>
@@ -239,24 +241,24 @@ const ClientList = () => {
                                         <TableCell align="center">{getSessionCount(client.id)}</TableCell>
                                         <TableCell align="center">
                                             <Chip
-                                                label={client.isActive ? 'Aktif' : 'Pasif'}
+                                                label={client.isActive ? t('clients.active') : t('clients.passive')}
                                                 size="small"
                                                 color={client.isActive ? 'success' : 'default'}
                                                 variant={client.isActive ? 'filled' : 'outlined'}
                                             />
                                         </TableCell>
                                         <TableCell align="right" onClick={(e) => e.stopPropagation()}>
-                                            <Tooltip title="Görüntüle">
+                                            <Tooltip title={t('clients.view')}>
                                                 <IconButton size="small" onClick={() => navigate(`/clients/${client.id}`)}>
                                                     <ViewIcon fontSize="small" />
                                                 </IconButton>
                                             </Tooltip>
-                                            <Tooltip title="Düzenle">
+                                            <Tooltip title={t('clients.edit')}>
                                                 <IconButton size="small" onClick={() => handleOpenDialog(client)}>
                                                     <EditIcon fontSize="small" />
                                                 </IconButton>
                                             </Tooltip>
-                                            <Tooltip title="Sil">
+                                            <Tooltip title={t('clients.delete')}>
                                                 <IconButton size="small" color="error" onClick={() => handleDeleteClick(client)}>
                                                     <DeleteIcon fontSize="small" />
                                                 </IconButton>
@@ -267,7 +269,7 @@ const ClientList = () => {
                                 {filteredClients.length === 0 && (
                                     <TableRow>
                                         <TableCell colSpan={6} align="center" sx={{ py: 4 }}>
-                                            <Typography color="text.secondary">Danışan bulunamadı</Typography>
+                                            <Typography color="text.secondary">{t('clients.notFound')}</Typography>
                                         </TableCell>
                                     </TableRow>
                                 )}
@@ -277,9 +279,9 @@ const ClientList = () => {
                 </Card>
             ) : (
                 /* Kart Görünümü */
-                <Grid container spacing={2}>
+                <Grid container spacing={{ xs: 1.5, sm: 2 }}>
                     {filteredClients.map((client) => (
-                        <Grid size={{ xs: 12, sm: 6, md: 4 }} key={client.id}>
+                        <Grid size={{ xs: 12, sm: 6, md: 4, lg: 4 }} key={client.id}>
                             <Card
                                 sx={{
                                     cursor: 'pointer',
@@ -298,7 +300,7 @@ const ClientList = () => {
                                                 {client.firstName} {client.lastName}
                                             </Typography>
                                             <Chip
-                                                label={client.isActive ? 'Aktif' : 'Pasif'}
+                                                label={client.isActive ? t('clients.active') : t('clients.passive')}
                                                 size="small"
                                                 color={client.isActive ? 'success' : 'default'}
                                             />
@@ -318,7 +320,7 @@ const ClientList = () => {
                                         <Typography variant="body2" color="text.secondary">{client.email || '—'}</Typography>
                                     </Box>
                                     <Typography variant="caption" color="text.disabled" sx={{ mt: 1.5, display: 'block' }}>
-                                        {getSessionCount(client.id)} seans
+                                        {getSessionCount(client.id)} {t('clients.sessions')}
                                     </Typography>
                                 </CardContent>
                             </Card>
@@ -328,13 +330,15 @@ const ClientList = () => {
             )}
 
             {/* Danışan Ekleme/Düzenleme Dialog */}
-            <Dialog open={dialogOpen} onClose={handleCloseDialog} maxWidth="md" fullWidth>
-                <DialogTitle>{editingClient ? 'Danışan Düzenle' : 'Yeni Danışan Ekle'}</DialogTitle>
+            <Dialog open={dialogOpen} onClose={handleCloseDialog} maxWidth="md" fullWidth
+                sx={{ '& .MuiDialog-paper': { mx: { xs: 1, sm: 2 }, width: { xs: 'calc(100% - 16px)', sm: 'calc(100% - 32px)' } } }}
+            >
+                <DialogTitle>{editingClient ? t('clients.editTitle') : t('clients.addTitle')}</DialogTitle>
                 <DialogContent>
                     <Grid container spacing={2} sx={{ mt: 1 }}>
                         <Grid size={{ xs: 12, sm: 6 }}>
                             <TextField
-                                label="Ad"
+                                label={t('clients.firstName')}
                                 fullWidth
                                 required
                                 value={formData.firstName}
@@ -343,7 +347,7 @@ const ClientList = () => {
                         </Grid>
                         <Grid size={{ xs: 12, sm: 6 }}>
                             <TextField
-                                label="Soyad"
+                                label={t('clients.lastName')}
                                 fullWidth
                                 required
                                 value={formData.lastName}
@@ -352,7 +356,7 @@ const ClientList = () => {
                         </Grid>
                         <Grid size={{ xs: 12, sm: 6 }}>
                             <TextField
-                                label="Telefon"
+                                label={t('clients.phone')}
                                 fullWidth
                                 value={formData.phone}
                                 onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
@@ -360,7 +364,7 @@ const ClientList = () => {
                         </Grid>
                         <Grid size={{ xs: 12, sm: 6 }}>
                             <TextField
-                                label="E-posta"
+                                label={t('clients.email')}
                                 fullWidth
                                 type="email"
                                 value={formData.email}
@@ -369,7 +373,7 @@ const ClientList = () => {
                         </Grid>
                         <Grid size={{ xs: 12, sm: 6 }}>
                             <TextField
-                                label="Doğum Tarihi"
+                                label={t('clients.birthDate')}
                                 fullWidth
                                 type="date"
                                 InputLabelProps={{ shrink: true }}
@@ -379,21 +383,21 @@ const ClientList = () => {
                         </Grid>
                         <Grid size={{ xs: 12, sm: 6 }}>
                             <FormControl fullWidth>
-                                <InputLabel>Cinsiyet</InputLabel>
+                                <InputLabel>{t('clients.gender')}</InputLabel>
                                 <Select
                                     value={formData.gender}
-                                    label="Cinsiyet"
+                                    label={t('clients.gender')}
                                     onChange={(e) => setFormData({ ...formData, gender: e.target.value })}
                                 >
-                                    <MenuItem value="Kadın">Kadın</MenuItem>
-                                    <MenuItem value="Erkek">Erkek</MenuItem>
-                                    <MenuItem value="Diğer">Diğer</MenuItem>
+                                    <MenuItem value="Kadın">{t('clients.genderFemale')}</MenuItem>
+                                    <MenuItem value="Erkek">{t('clients.genderMale')}</MenuItem>
+                                    <MenuItem value="Diğer">{t('clients.genderOther')}</MenuItem>
                                 </Select>
                             </FormControl>
                         </Grid>
                         <Grid size={{ xs: 12 }}>
                             <TextField
-                                label="Acil Durum İletişim"
+                                label={t('clients.emergencyContact')}
                                 fullWidth
                                 value={formData.emergencyContact}
                                 onChange={(e) => setFormData({ ...formData, emergencyContact: e.target.value })}
@@ -401,7 +405,7 @@ const ClientList = () => {
                         </Grid>
                         <Grid size={{ xs: 12, sm: 6 }}>
                             <TextField
-                                label="Tanı"
+                                label={t('clients.diagnosis')}
                                 fullWidth
                                 value={formData.diagnosis}
                                 onChange={(e) => setFormData({ ...formData, diagnosis: e.target.value })}
@@ -409,7 +413,7 @@ const ClientList = () => {
                         </Grid>
                         <Grid size={{ xs: 12, sm: 6 }}>
                             <TextField
-                                label="Tedavi Planı"
+                                label={t('clients.treatmentPlan')}
                                 fullWidth
                                 value={formData.treatmentPlan}
                                 onChange={(e) => setFormData({ ...formData, treatmentPlan: e.target.value })}
@@ -417,7 +421,7 @@ const ClientList = () => {
                         </Grid>
                         <Grid size={{ xs: 12 }}>
                             <TextField
-                                label="Notlar"
+                                label={t('clients.notes')}
                                 fullWidth
                                 multiline
                                 rows={3}
@@ -428,25 +432,25 @@ const ClientList = () => {
                     </Grid>
                 </DialogContent>
                 <DialogActions sx={{ p: 2.5 }}>
-                    <Button onClick={handleCloseDialog} disabled={saving}>İptal</Button>
+                    <Button onClick={handleCloseDialog} disabled={saving}>{t('clients.cancel')}</Button>
                     <Button variant="contained" onClick={handleSave} disabled={saving}>
-                        {saving ? 'Kaydediliyor...' : editingClient ? 'Güncelle' : 'Kaydet'}
+                        {saving ? t('clients.saving') : editingClient ? t('clients.update') : t('clients.save')}
                     </Button>
                 </DialogActions>
             </Dialog>
 
             {/* Silme Onay Dialog */}
             <Dialog open={deleteDialogOpen} onClose={() => setDeleteDialogOpen(false)}>
-                <DialogTitle>Danışanı Sil</DialogTitle>
+                <DialogTitle>{t('clients.deleteTitle')}</DialogTitle>
                 <DialogContent>
                     <Typography>
-                        <strong>{editingClient?.firstName} {editingClient?.lastName}</strong> adlı danışanı ve tüm seans kayıtlarını silmek istediğinize emin misiniz?
+                        <strong>{editingClient?.firstName} {editingClient?.lastName}</strong> {t('clients.deleteConfirm')}
                     </Typography>
                 </DialogContent>
                 <DialogActions sx={{ p: 2 }}>
-                    <Button onClick={() => setDeleteDialogOpen(false)} disabled={saving}>İptal</Button>
+                    <Button onClick={() => setDeleteDialogOpen(false)} disabled={saving}>{t('clients.cancel')}</Button>
                     <Button variant="contained" color="error" onClick={handleDeleteConfirm} disabled={saving}>
-                        {saving ? 'Siliniyor...' : 'Sil'}
+                        {saving ? t('clients.deleting') : t('clients.delete')}
                     </Button>
                 </DialogActions>
             </Dialog>

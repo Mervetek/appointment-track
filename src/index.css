@@ -32,6 +32,55 @@ body {
   font-size: 0.85rem !important;
 }
 
+/* Tablet responsive - FullCalendar */
+@media (max-width: 900px) {
+  .fc .fc-toolbar {
+    flex-wrap: wrap !important;
+    gap: 8px !important;
+  }
+
+  .fc .fc-toolbar-title {
+    font-size: 1rem !important;
+    width: 100% !important;
+    text-align: center !important;
+    order: -1 !important;
+  }
+
+  .fc .fc-toolbar-chunk {
+    display: flex !important;
+    justify-content: center !important;
+  }
+
+  .fc .fc-button {
+    font-size: 0.75rem !important;
+    padding: 6px 10px !important;
+  }
+
+  .fc .fc-event {
+    font-size: 0.7rem !important;
+    padding: 1px 4px !important;
+  }
+
+  .fc .fc-col-header-cell-cushion {
+    font-size: 0.8rem !important;
+  }
+
+  .fc .fc-timegrid-slot {
+    height: 2.5em !important;
+  }
+}
+
+@media (max-width: 600px) {
+  .fc .fc-toolbar-title {
+    font-size: 0.9rem !important;
+  }
+
+  .fc .fc-button {
+    font-size: 0.7rem !important;
+    padding: 4px 8px !important;
+  }
+}
+
 .fc .fc-button-primary {
   background-color: #5C6BC0 !important;
   border-color: #5C6BC0 !important;
@@ -91,4 +140,34 @@ body {
 
 ::-webkit-scrollbar-thumb:hover {
   background: #999;
+}
+
+/* Tablet & touch-friendly improvements */
+@media (hover: none) and (pointer: coarse) {
+
+  /* Bigger touch targets on touch devices */
+  .MuiIconButton-root {
+    min-width: 44px !important;
+    min-height: 44px !important;
+  }
+
+  .MuiListItemButton-root {
+    min-height: 48px !important;
+  }
+
+  .MuiTableRow-root .MuiTableCell-root {
+    padding-top: 12px !important;
+    padding-bottom: 12px !important;
+  }
+
+  .MuiToggleButton-root {
+    min-height: 40px !important;
+  }
+}
+
+/* Tablet landscape / portrait table fix */
+@media (max-width: 1024px) {
+  .MuiTableContainer-root {
+    -webkit-overflow-scrolling: touch;
+  }
 }
