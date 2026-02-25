@@ -92,6 +92,32 @@ export const useNotifications = (sessions = [], getClientById, t, lang) => {
         }
     }, [sessions.length, lang]);
 
+    // SW'yi canlı tut — heartbeat + visibility change + keep-alive fetch
+    useEffect(() => {
+        // Heartbeat: SW'ye periyodik mesaj göndererek uyumasını engelle
+        const heartbeatInterval = setInterval(() => {
+            if (swReg.current?.active) {
+                swReg.current.active.postMessage({ type: 'HEARTBEAT' });
+            }
+            // Keep-alive fetch — SW'nin fetch event'ini tetikler
+            fetch('/api/keep-alive').catch(() => {});
+        }, 50 * 1000); // 50 saniyede bir
+
+        // Visibility change: Kullanıcı uygulamaya dönünce SW'yi tetikle
+        const handleVisibility = () => {
+            if (document.visibilityState === 'visible' && swReg.current?.active) {
+                swReg.current.active.postMessage({ type: 'HEARTBEAT' });
+                sendConfigToSW(swReg.current, lang);
+            }
+        };
+        document.addEventListener('visibilitychange', handleVisibility);
+
+        return () => {
+            clearInterval(heartbeatInterval);
+            document.removeEventListener('visibilitychange', handleVisibility);
+        };
+    }, [lang]);
+
     // İzin isteme
     const requestPermission = useCallback(async () => {
         if (!('Notification' in window)) return 'unsupported';
